@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathing Exercise - Swadesh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* NAYA: Black background */
+        body {
+            background-color: #000000;
+            font-family: 'Nunito', sans-serif;
+            color: white;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .breathing-container {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* NAYA: Aura/Halo effect (Aqua color mein) */
+        .aura {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.1), transparent 70%);
+            border-radius: 50%;
+            transition: all 4s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+            z-index: -1;
+        }
+
+        .circle {
+            width: 150px;
+            height: 150px;
+            /* NAYA: Circle ka color Aqua kiya */
+            background: aqua;
+            border-radius: 50%;
+            transition: all 4s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+            /* NAYA: Margin badha di hai taaki text upar rahe */
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+            animation: pulse 4s infinite alternate;
+        }
+
+        /* NAYA: Pulse animation (Aqua color mein) */
+        @keyframes pulse {
+            from { box-shadow: 0 0 40px rgba(0, 255, 255, 0.4); }
+            to { box-shadow: 0 0 70px rgba(0, 255, 255, 0.7); }
+        }
+
+        #instruction {
+            font-size: 2rem;
+            font-weight: bold;
+            transition: opacity 1s ease;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            /* NAYA: Text aur circle ke beech space ke liye */
+            margin-bottom: 120px; 
+        }
+
+        /* JS se control hone wali classes */
+        .state-grow .circle { transform: scale(1.8); }
+        .state-grow .aura { transform: translate(-50%, -50%) scale(2); opacity: 0.7; }
+        .state-shrink .circle { transform: scale(1); }
+        .state-shrink .aura { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+
+        /* Back button ki styling */
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s ease;
+        }
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('mental_health_chatbot_page') }}" class="back-link">← Back to Chat</a>
+    <div class="breathing-container">
+        <!-- Text ab circle ke bahar aur upar hai -->
+        <h1 id="instruction">Shuru karte hain...</h1>
+        <div class="aura"></div>
+        <div class="circle" id="circle"></div>
+    </div>
+
+    <script>
+        const body = document.body;
+        const instruction = document.getElementById('instruction');
+
+        function startBreathing() {
+            instruction.style.opacity = '0';
+            setTimeout(() => {
+                instruction.innerText = 'Saans Andar Lein (Breathe In)';
+                instruction.style.opacity = '1';
+            }, 1000);
+            
+            body.className = 'state-grow';
+
+            setTimeout(() => {
+                instruction.style.opacity = '0';
+                setTimeout(() => {
+                    instruction.innerText = 'Saans Rokein (Hold)';
+                    instruction.style.opacity = '1';
+                }, 1000);
+
+                setTimeout(() => {
+                    instruction.style.opacity = '0';
+                    setTimeout(() => {
+                        instruction.innerText = 'Saans Bahar Chodein (Breathe Out)';
+                        instruction.style.opacity = '1';
+                    }, 1000);
+                    body.className = 'state-shrink';
+                }, 4000); // 4 seconds hold
+            }, 4000); // 4 seconds breathe in
+        }
+
+        setInterval(startBreathing, 12000);
+        startBreathing();
+    </script>
+</body>
+</html>

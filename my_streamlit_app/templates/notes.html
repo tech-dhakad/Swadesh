@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Study Hub - Swadesh</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto:wght@400;700&family=Merriweather:wght@400;700&family=Nunito:wght@400;700&family=Open+Sans:wght@400;700&family=Playfair+Display:wght@400;700&family=Raleway:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Quill -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-color: #f5f7fa;
+      --surface-color: #fff;
+      --border-color: #ddd;
+      --text-color: #222;
+      --text-muted: #555;
+      --blue: #3b82f6;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+    }
+
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface-color);
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .navbar h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    .nav-actions {
+      display: flex;
+      gap: 12px;
+    }
+    .nav-btn, .drive-button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+      text-decoration: none;
+    }
+    .nav-btn {
+      background: var(--blue);
+      color: #fff;
+    }
+    .nav-btn:hover {
+      background: #2563eb;
+    }
+    .drive-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(145deg,#4285F4,#34A853);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* Layout */
+    .container {
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+    }
+    .notes-section {
+      flex: 2;
+    }
+    .tools-section {
+      flex: 1;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+      transition: background 0.3s;
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    /* Editor */
+    #editor {
+      height: 300px;
+      background: #fff;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .save-button {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .save-button:hover {
+      background: #2563eb;
+    }
+
+    /* Notes List */
+    .notes-list {
+      display: grid;
+      gap: 12px;
+    }
+    .note-card {
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .note-card:hover {
+      border-color: var(--blue);
+      background: #f0f7ff;
+    }
+
+    /* To-Do */
+    #todo-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    #todo-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #todo-list li {
+      padding: 8px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+    }
+    #todo-list li.completed {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    /* Dark Mode */
+    body.dark {
+      --bg-color: #121212;
+      --surface-color: #1e1e1e;
+      --border-color: #333;
+      --text-color: #eee;
+      --text-muted: #aaa;
+    }
+    body.dark #editor {
+      background: #2a2a2a;
+      color: #fff;
+    }
+    body.dark .note-card:hover {
+      background: #2a2a2a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <h1>📚 My Study Hub</h1>
+    <div class="nav-actions">
+      <!-- Flask Back to Home -->
+      <a href="{{ url_for('home') }}" class="nav-btn">🏠 Back to Home</a>
+      <button id="dark-mode-btn" class="nav-btn">🌙 Dark Mode</button>
+      <a href="https://drive.google.com/drive/u/0/my-drive" class="drive-button">
+        <svg width="20" viewBox="0 0 24 24"><path fill="#FFC107" d="M15.1 15.3L17.3 19.1 22.9 10h-4.2z"/><path fill="#34A853" d="M6.4 5 1 15.3h8.3L12.5 9.5z"/><path fill="#EA4335" d="M11.7 19.1 9.5 15.3H2l5.6 8.7z"/><path fill="#4285F4" d="M12.5 9.5 9.3 15.3h9.4l4.2-5.3z"/></svg>
+        Open Files
+      </a>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Notes -->
+    <div class="notes-section">
+      <div class="card">
+        <h2>📝 Digital Notebook</h2>
+        <select id="font-picker">
+          <option value="Inter">Inter</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Merriweather">Merriweather</option>
+          <option value="Nunito">Nunito</option>
+          <option value="Open Sans">Open Sans</option>
+          <option value="Playfair Display">Playfair Display</option>
+          <option value="Raleway">Raleway</option>
+          <option value="Poppins">Poppins</option>
+        </select>
+        <div id="editor"></div>
+        <button id="save-note-btn" class="save-button">💾 Save Note</button>
+      </div>
+
+      <div class="card">
+        <h2>📂 Saved Notes</h2>
+        <div id="notes-list" class="notes-list"></div>
+      </div>
+    </div>
+
+    <!-- Tools -->
+    <div class="tools-section">
+      <div class="card">
+        <h2>✅ To-Do List</h2>
+        <input id="todo-input" type="text" placeholder="Add new task & press Enter...">
+        <ul id="todo-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+  <script>
+    // Quill Editor
+    var quill = new Quill('#editor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ 'header': [1, 2, false] }],
+          ['bold', 'italic', 'underline'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          ['link', 'image']
+        ]
+      }
+    });
+
+    const notesList = document.getElementById('notes-list');
+
+    function refreshNotesList() {
+      notesList.innerHTML = '';
+      const allNotes = JSON.parse(localStorage.getItem('myNotes') || '[]');
+      allNotes.forEach((note, idx) => {
+        const card = document.createElement('div');
+        card.className = 'note-card';
+        card.textContent = note.title || `Note ${idx+1}`;
+        card.onclick = () => quill.setContents(note.content);
+        notesList.appendChild(card);
+      });
+    }
+
+    document.getElementById('save-note-btn').onclick = () => {
+      const title = prompt("Enter note title:");
+      const content = quill.getContents();
+      let allNotes = JSON.parse(localStorage.getItem('myNotes') || '[]');
+      allNotes.push({ title, content });
+      localStorage.setItem('myNotes', JSON.stringify(allNotes));
+      refreshNotesList();
+      alert("Note saved ✅");
+    };
+
+    // Font Picker
+    document.getElementById('font-picker').onchange = (e) => {
+      document.querySelector('#editor .ql-editor').style.fontFamily = e.target.value;
+    };
+
+    // To-Do
+    const todoInput = document.getElementById('todo-input');
+    const todoList = document.getElementById('todo-list');
+    function saveTasks() {
+      const tasks = [];
+      todoList.querySelectorAll('li').forEach(li => {
+        tasks.push({ text: li.textContent, completed: li.classList.contains('completed') });
+      });
+      localStorage.setItem('myTodoList', JSON.stringify(tasks));
+    }
+    function loadTasks() {
+      todoList.innerHTML = '';
+      const tasks = JSON.parse(localStorage.getItem('myTodoList') || '[]');
+      tasks.forEach(t => addTask(t.text, t.completed));
+    }
+    function addTask(text, completed=false) {
+      const li = document.createElement('li');
+      li.textContent = text;
+      if (completed) li.classList.add('completed');
+      li.onclick = () => { li.classList.toggle('completed'); saveTasks(); };
+      li.ondblclick = () => { li.remove(); saveTasks(); };
+      todoList.appendChild(li);
+    }
+    todoInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter' && todoInput.value.trim() !== '') {
+        addTask(todoInput.value.trim());
+        todoInput.value = '';
+        saveTasks();
+      }
+    });
+
+    // Dark Mode
+    const darkBtn = document.getElementById('dark-mode-btn');
+    darkBtn.onclick = () => {
+      document.body.classList.toggle('dark');
+      darkBtn.textContent = document.body.classList.contains('dark') ? "☀ Light Mode" : "🌙 Dark Mode";
+    };
+
+    // Load Saved
+    window.onload = () => {
+      refreshNotesList();
+      loadTasks();
+    };
+  </script>
+</body>
+</html>

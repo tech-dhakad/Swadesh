@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced AI Quiz Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+    --bg-color: #000000;
+    --card-bg: rgba(20, 20, 35, 0.25);
+    --border-color: rgba(255, 255, 255, 0.2);
+    --text-primary: #ffffff;
+    --text-secondary: #a3a9b6;
+    --accent-pink: #A020F0;
+    --accent-blue: #3b82f6;
+    --correct-answer: #22c55e;
+    --incorrect-answer: #ef4444;
+    --not-attempted: #facc15;
+    --comparison-up: #22c55e;
+    --comparison-down: #ef4444;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    perspective: 1500px;
+}
+.view { display: none; padding: 20px; }
+@media (min-width: 768px) { .view { padding: 40px; } }
+.view.active { display: block; animation: fadeInView 0.5s ease-out; }
+@keyframes fadeInView { from { opacity: 0; } to { opacity: 1; } }
+h1 { font-family: 'Playfair Display', serif; font-size: 2.2em; text-align: center; margin-bottom: 40px; color: var(--accent-pink); }
+@media (min-width: 768px) { h1 { font-size: 2.8em; } }
+h2 { font-weight: 500; font-size: 1.5em; margin-bottom: 20px; }
+.card-3d { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transform-style: preserve-3d; transition: transform 0.5s, box-shadow 0.5s; }
+.selection-card { text-align: center; padding: 40px 20px; cursor: pointer; }
+.selection-card:hover { transform: translateZ(50px) scale(1.05); box-shadow: 0 20px 40px rgba(0,0,0,0.5); border-color: var(--accent-blue); }
+.selection-card .icon { font-size: 3em; display: block; margin-bottom: 15px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+#quizContainer { max-width: 800px; margin: auto; }
+#questionText { font-size: 1.2em; font-weight: 500; margin-bottom: 15px; line-height: 1.6; }
+@media (min-width: 768px) { #questionText { font-size: 1.4em; } }
+#optionsContainer { display: grid; gap: 15px; margin-bottom: 20px; }
+.option-btn { width: 100%; padding: 15px; font-size: 1em; text-align: left; background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+.option-btn:hover:not(:disabled) { border-color: var(--accent-blue); background: rgba(59, 130, 246, 0.2); }
+.option-btn.correct { background-color: var(--correct-answer); border-color: var(--correct-answer); }
+.option-btn.incorrect { background-color: var(--incorrect-answer); border-color: var(--incorrect-answer); }
+.option-btn:disabled { cursor: not-allowed; }
+#progressContainer { display: flex; height: 10px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; margin-bottom: 20px; }
+.progress-segment { height: 100%; transition: background-color 0.5s; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+.stat-card { text-align: center; padding: 20px; }
+.stat-card .value { font-size: 2.5em; font-weight: 700; }
+.stat-card .label { color: var(--text-secondary); margin-top: 5px; }
+#comparisonValue { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.up { color: var(--comparison-up); } .down { color: var(--comparison-down); }
+.chart-container { height: 300px; }
+.list-card ul { list-style: none; padding: 0; }
+.list-card li { padding: 10px; background: rgba(0,0,0,0.2); border-radius: 5px; margin-bottom: 8px; }
+.list-card li.clickable { cursor: pointer; transition: background 0.3s; }
+.list-card li.clickable:hover { background: rgba(59, 130, 246, 0.2); }
+.btn { padding: 12px 25px; font-size: 1em; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; background: linear-gradient(90deg, var(--accent-blue), #5e35b1); color: white; }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+#timer { font-size: 1.2em; font-weight: 600; color: var(--accent-blue); }
+#streakTracker { font-size: 1em; font-weight: 500; color: var(--accent-pink); }
+#aiHelpModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+#aiHelpContent { background: #101018; border: 1px solid var(--border-color); padding: 30px; border-radius: 15px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; position: relative; }
+#aiHelpContent h2 { color: var(--accent-pink); }
+#aiPracticeQuestions .question-item { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+#aiPracticeQuestions .question-item p { margin-bottom: 10px; }
+#aiPracticeQuestions .question-item ul { list-style: none; padding-left: 0; margin-bottom: 10px; }
+#aiPracticeQuestions .question-item small { color: var(--text-secondary); font-style: italic; }
+#closeModalBtn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; background: none; border: none; color: white; cursor: pointer; }
+#aiLoader { text-align: center; font-size: 1.2em; }
+</style>
+</head>
+<body>
+
+<div id="categoryView" class="view active"></div>
+<div id="selectionView" class="view"></div>
+<div id="quizView" class="view"></div>
+<div id="dashboardView" class="view"></div>
+
+<div id="aiHelpModal">
+    <div id="aiHelpContent">
+        <button id="closeModalBtn">&times;</button>
+        <div id="aiLoader">
+            <h2>Generating AI Practice Questions...</h2>
+            <p>Please wait, analyzing your results.</p>
+        </div>
+        <div id="aiResult" style="display: none;">
+            <h2 id="aiTopicTitle"></h2>
+            <h3>Personalized Practice Set</h3>
+            <div id="aiPracticeQuestions"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let currentQuiz = [], currentQuestionIndex = 0, score = 0, streak = 0, incorrectQuestions = [], timerInterval;
+    const questionTime = 180;
+    let timeLeft = questionTime;
+    const timesPerQuestion = [];
+
+    const quizData = {
+        JEE: {
+            Maths: [
+                { question: "The value of sin(90°) is:", topic: "Trigonometry", options: ["1", "0", "-1", "0.5"], answer: "1" },
+                { question: "The derivative of e^x is:", topic: "Calculus", options: ["e^x", "1", "0", "x*e^(x-1)"], answer: "e^x" },
+                { question: "What is the determinant of the matrix [[2, 1], [4, 3]]?", topic: "Matrices", options: ["2", "6", "8", "10"], answer: "2" },
+                { question: "The integral of 1/x dx is:", topic: "Calculus", options: ["ln|x| + C", "x + C", "1/x² + C", "-1/x² + C"], answer: "ln|x| + C" },
+                { question: "What is the value of i^4, where i is an imaginary number?", topic: "Complex Numbers", options: ["1", "-1", "i", "-i"], answer: "1" },
+                { question: "The eccentricity of a parabola is:", topic: "Conic Sections", options: ["1", "0", "< 1", "> 1"], answer: "1" },
+                { question: "If A and B are two sets, what is (A ∪ B)'?", topic: "Set Theory", options: ["A' ∩ B'", "A' ∪ B'", "A ∩ B", "A ∪ B"], answer: "A' ∩ B'" },
+                { question: "The derivative of sin(x) is:", topic: "Calculus", options: ["cos(x)", "-cos(x)", "sin(x)", "-sin(x)"], answer: "cos(x)" },
+                { question: "The distance of the point (3, 4) from the origin is:", topic: "Coordinate Geometry", options: ["5", "7", "1", "25"], answer: "5" },
+                { question: "What is the sum of the first n natural numbers?", topic: "Sequences & Series", options: ["n(n+1)/2", "n²", "n(n-1)/2", "n"], answer: "n(n+1)/2" },
+                { question: "The value of cos(180°) is:", topic: "Trigonometry", options: ["-1", "1", "0", "0.5"], answer: "-1" },
+                { question: "The number of permutations of n distinct objects is:", topic: "Permutation & Combination", options: ["n!", "n²", "2^n", "n"], answer: "n!" },
+                { question: "The slope of a line perpendicular to y = 2x + 3 is:", topic: "Coordinate Geometry", options: ["-1/2", "2", "1/2", "-2"], answer: "-1/2" },
+                { question: "What is the value of log₁₀(100)?", topic: "Logarithms", options: ["2", "10", "1", "100"], answer: "2" },
+                { question: "The integral of cos(x) dx is:", topic: "Calculus", options: ["sin(x) + C", "-sin(x) + C", "cos(x) + C", "-cos(x) + C"], answer: "sin(x) + C" },
+                { question: "Probability of getting a head when a fair coin is tossed is:", topic: "Probability", options: ["1/2", "1", "0", "1/4"], answer: "1/2" },
+                { question: "The equation of the x-axis is:", topic: "Coordinate Geometry", options: ["y = 0", "x = 0", "x = y", "x + y = 0"], answer: "y = 0" },
+                { question: "What is the dot product of vectors i and j?", topic: "Vector Algebra", options: ["0", "1", "k", "-k"], answer: "0" },
+                { question: "The common ratio of the G.P. 3, 6, 12, 24... is:", topic: "Sequences & Series", options: ["2", "3", "1/2", "6"], answer: "2" },
+                { question: "The center of the circle x² + y² - 4x + 6y - 12 = 0 is:", topic: "Conic Sections", options: ["(2, -3)", "(-2, 3)", "(4, -6)", "(-4, 6)"], answer: "(2, -3)" }
+            ],
+            Physics: [
+                { question: "What is the SI unit of force?", topic: "Units & Measurement", options: ["Newton", "Joule", "Watt", "Pascal"], answer: "Newton" },
+                { question: "Which law states that for every action, there is an equal and opposite reaction?", topic: "Laws of Motion", options: ["Newton's Third Law", "Newton's First Law", "Ohm's Law", "Kepler's Law"], answer: "Newton's Third Law" },
+                { question: "The rate of change of velocity is called:", topic: "Kinematics", options: ["Acceleration", "Speed", "Displacement", "Momentum"], answer: "Acceleration" },
+                { question: "What is the escape velocity of Earth?", topic: "Gravitation", options: ["11.2 km/s", "9.8 m/s²", "3 x 10⁸ m/s", "1.67 km/s"], answer: "11.2 km/s" },
+                { question: "Which phenomenon is responsible for the blue color of the sky?", topic: "Optics", options: ["Scattering of light", "Reflection", "Refraction", "Dispersion"], answer: "Scattering of light" },
+                { question: "What is the unit of electric charge?", topic: "Electrostatics", options: ["Coulomb", "Ampere", "Volt", "Ohm"], answer: "Coulomb" },
+                { question: "The energy stored in a capacitor is given by:", topic: "Capacitance", options: ["(1/2)CV²", "CV", "V/C", "C/V"], answer: "(1/2)CV²" },
+                { question: "Sound waves in air are:", topic: "Waves", options: ["Longitudinal", "Transverse", "Electromagnetic", "Both A and B"], answer: "Longitudinal" },
+                { question: "The principle of a transformer is based on:", topic: "Electromagnetism", options: ["Mutual induction", "Self-induction", "Ohm's law", "Kirchhoff's laws"], answer: "Mutual induction" },
+                { question: "Who discovered the electron?", topic: "Modern Physics", options: ["J.J. Thomson", "Rutherford", "Chadwick", "Bohr"], answer: "J.J. Thomson" },
+                { question: "What is the dimensional formula for Work?", topic: "Units & Measurement", options: ["[ML²T⁻²]", "[MLT⁻²]", "[ML²T⁻¹]", "[MLT⁻¹]"], answer: "[ML²T⁻²]" },
+                { question: "A concave lens always forms a:", topic: "Optics", options: ["Virtual and erect image", "Real and inverted image", "Real and erect image", "Virtual and inverted image"], answer: "Virtual and erect image" },
+                { question: "What does a semiconductor diode do?", topic: "Semiconductors", options: ["Allows current to flow in one direction", "Blocks current completely", "Amplifies current", "Stores charge"], answer: "Allows current to flow in one direction" },
+                { question: "The momentum of a body is the product of its mass and:", topic: "Laws of Motion", options: ["Velocity", "Acceleration", "Force", "Time"], answer: "Velocity" },
+                { question: "Which of the following is not an electromagnetic wave?", topic: "Waves", options: ["Sound waves", "X-rays", "Gamma rays", "Radio waves"], answer: "Sound waves" },
+                { question: "The resistance of an ideal ammeter is:", topic: "Current Electricity", options: ["Zero", "Infinite", "Very high", "Depends on the circuit"], answer: "Zero" },
+                { question: "What is the formula for kinetic energy?", topic: "Work, Energy & Power", options: ["(1/2)mv²", "mgh", "F*d", "ma"], answer: "(1/2)mv²" },
+                { question: "The phenomenon of radioactivity was discovered by:", topic: "Modern Physics", options: ["Henri Becquerel", "Marie Curie", "Pierre Curie", "Rutherford"], answer: "Henri Becquerel" },
+                { question: "What is the SI unit of magnetic flux?", topic: "Electromagnetism", options: ["Weber", "Tesla", "Henry", "Gauss"], answer: "Weber" },
+                { question: "Pascal's law is related to:", topic: "Properties of Matter", options: ["Pressure", "Viscosity", "Surface tension", "Elasticity"], answer: "Pressure" }
+            ],
+            Chemistry: [
+                { question: "What is the chemical symbol for Gold?", topic: "Elements", options: ["Au", "Ag", "Go", "Gd"], answer: "Au" },
+                { question: "The pH of a neutral solution is:", topic: "Acids & Bases", options: ["7", "0", "14", "1"], answer: "7" },
+                { question: "Which gas is known as laughing gas?", topic: "Inorganic Chemistry", options: ["Nitrous Oxide (N₂O)", "Nitrogen Dioxide (NO₂)", "Carbon Monoxide (CO)", "Methane (CH₄)"], answer: "Nitrous Oxide (N₂O)" },
+                { question: "What is the main component of natural gas?", topic: "Organic Chemistry", options: ["Methane", "Ethane", "Propane", "Butane"], answer: "Methane" },
+                { question: "The process of converting a solid directly into a gas is called:", topic: "States of Matter", options: ["Sublimation", "Evaporation", "Condensation", "Deposition"], answer: "Sublimation" },
+                { question: "Which of the following is a noble gas?", topic: "Periodic Table", options: ["Neon", "Oxygen", "Nitrogen", "Hydrogen"], answer: "Neon" },
+                { question: "What is the chemical formula for water?", topic: "Basic Concepts", options: ["H₂O", "CO₂", "O₂", "H₂O₂"], answer: "H₂O" },
+                { question: "The atomic number of an element is the number of:", topic: "Atomic Structure", options: ["Protons", "Neutrons", "Electrons", "Nucleons"], answer: "Protons" },
+                { question: "Vinegar is a dilute solution of:", topic: "Organic Chemistry", options: ["Acetic acid", "Formic acid", "Sulphuric acid", "Hydrochloric acid"], answer: "Acetic acid" },
+                { question: "Which metal is liquid at room temperature?", topic: "Elements", options: ["Mercury", "Bromine", "Sodium", "Gold"], answer: "Mercury" },
+                { question: "The bond in NaCl is:", topic: "Chemical Bonding", options: ["Ionic", "Covalent", "Metallic", "Hydrogen bond"], answer: "Ionic" },
+                { question: "What is the monomer of PVC?", topic: "Polymers", options: ["Vinyl chloride", "Ethene", "Propene", "Styrene"], answer: "Vinyl chloride" },
+                { question: "Haber's process is used to manufacture:", topic: "Inorganic Chemistry", options: ["Ammonia", "Sulphuric acid", "Nitric acid", "Chlorine"], answer: "Ammonia" },
+                { question: "Which element has the highest electronegativity?", topic: "Periodic Table", options: ["Fluorine", "Chlorine", "Oxygen", "Nitrogen"], answer: "Fluorine" },
+                { question: "What is the oxidation state of Mn in KMnO₄?", topic: "Redox Reactions", options: ["+7", "+2", "+4", "+6"], answer: "+7" },
+                { question: "The general formula for alkanes is:", topic: "Organic Chemistry", options: ["CnH2n+2", "CnH2n", "CnH2n-2", "CnHn"], answer: "CnH2n+2" },
+                { question: "Bronze is an alloy of:", topic: "Metallurgy", options: ["Copper and Tin", "Copper and Zinc", "Iron and Carbon", "Lead and Tin"], answer: "Copper and Tin" },
+                { question: "The study of carbon-containing compounds is called:", topic: "Basic Concepts", options: ["Organic Chemistry", "Inorganic Chemistry", "Physical Chemistry", "Biochemistry"], answer: "Organic Chemistry" },
+                { question: "Which of the following is used as a catalyst in hydrogenation of oils?", topic: "Surface Chemistry", options: ["Nickel", "Iron", "Vanadium", "Platinum"], answer: "Nickel" },
+                { question: "Avogadro's number is approximately:", topic: "Mole Concept", options: ["6.022 x 10²³", "6.022 x 10⁻²³", "3 x 10⁸", "9.8"], answer: "6.022 x 10²³" }
+            ]
+        },
+        NDA: {
+            Maths: [
+                { question: "What is i², where i is an imaginary number?", topic: "Complex Numbers", options: ["-1", "1", "0", "i"], answer: "-1" },
+                { question: "The distance between points (0,0) and (3,4) is:", topic: "Coordinate Geometry", options: ["5", "7", "1", "25"], answer: "5" },
+                { question: "If sin(A) = 3/5, what is tan(A)?", topic: "Trigonometry", options: ["3/4", "4/3", "3/5", "4/5"], answer: "3/4" },
+                { question: "The probability of drawing a king from a deck of 52 cards is:", topic: "Probability", options: ["1/13", "1/52", "4/13", "2/13"], answer: "1/13" },
+                { question: "What is the order of the differential equation (d²y/dx²) + (dy/dx)³ + y = 0?", topic: "Differential Equations", options: ["2", "1", "3", "0"], answer: "2" },
+                { question: "If A is a matrix of order 3x2, then the order of A' (transpose) is:", topic: "Matrices", options: ["2x3", "3x2", "3x3", "2x2"], answer: "2x3" },
+                { question: "The mode of the data 2, 3, 4, 2, 5, 2, 6 is:", topic: "Statistics", options: ["2", "3", "4", "5"], answer: "2" },
+                { question: "The value of sec²(θ) - tan²(θ) is:", topic: "Trigonometry", options: ["1", "0", "-1", "2"], answer: "1" },
+                { question: "The cross product of two parallel vectors is:", topic: "Vector Algebra", options: ["A null vector (0)", "A scalar", "A unit vector", "The vectors themselves"], answer: "A null vector (0)" },
+                { question: "What is the sum of the angles of a quadrilateral?", topic: "Geometry", options: ["360°", "180°", "270°", "540°"], answer: "360°" },
+                { question: "The 20th term of the AP 2, 7, 12, ... is:", topic: "Sequences & Series", options: ["97", "102", "92", "107"], answer: "97" },
+                { question: "If log₂(x) = 4, what is x?", topic: "Logarithms", options: ["16", "8", "2", "4"], answer: "16" },
+                { question: "The number of ways to arrange the letters of the word 'LEADER' is:", topic: "Permutation & Combination", options: ["360", "720", "120", "180"], answer: "360" },
+                { question: "What is the degree of the polynomial 5x³ - 2x²y² + 9?", topic: "Algebra", options: ["4", "3", "2", "5"], answer: "4" },
+                { question: "The point (-3, -4) lies in which quadrant?", topic: "Coordinate Geometry", options: ["Third", "First", "Second", "Fourth"], answer: "Third" },
+                { question: "The median of 10, 20, 30, 40, 50 is:", topic: "Statistics", options: ["30", "25", "35", "40"], answer: "30" },
+                { question: "What is the conjugate of the complex number 2 + 3i?", topic: "Complex Numbers", options: ["2 - 3i", "-2 - 3i", "-2 + 3i", "3 + 2i"], answer: "2 - 3i" },
+                { question: "The area of a triangle with vertices (0,0), (4,0), and (0,3) is:", topic: "Coordinate Geometry", options: ["6 sq units", "12 sq units", "7 sq units", "5 sq units"], answer: "6 sq units" },
+                { question: "What is the value of 5! (5 factorial)?", topic: "Permutation & Combination", options: ["120", "25", "5", "60"], answer: "120" },
+                { question: "The value of sin(30°) + cos(60°) is:", topic: "Trigonometry", options: ["1", "0", "1/2", "√3/2"], answer: "1" }
+            ],
+            English: [
+                { question: "Synonym for 'Ubiquitous'?", topic: "Vocabulary", options: ["Everywhere","Rare","Scarce","Happy"], answer: "Everywhere" },
+                { question: "'A piece of cake' means:", topic: "Idioms", options: ["Something very easy", "A dessert", "A difficult task", "A celebration"], answer: "Something very easy" },
+                { question: "Antonym for 'Brave'?", topic: "Vocabulary", options: ["Cowardly", "Strong", "Bold", "Fearful"], answer: "Cowardly" },
+                { question: "Spot the error: 'He is one of the tallest boy in the class.'", topic: "Grammar", options: ["tallest boy", "in the class", "He is", "No error"], answer: "tallest boy" },
+                { question: "'To hit the nail on the head' means:", topic: "Idioms", options: ["To say something exactly right", "To hit a nail", "To be angry", "To miss the point"], answer: "To say something exactly right" },
+                { question: "Choose the correctly spelt word:", topic: "Spelling", options: ["Embarrassment", "Embarassment", "Embarrasment", "Embarasment"], answer: "Embarrassment" },
+                { question: "I prefer tea ___ coffee.", topic: "Grammar", options: ["to", "than", "over", "from"], answer: "to" },
+                { question: "A person who is new to a profession is called a:", topic: "One Word Substitution", options: ["Novice", "Veteran", "Expert", "Professional"], answer: "Novice" },
+                { question: "Synonym for 'Diligent'?", topic: "Vocabulary", options: ["Hardworking", "Lazy", "Careless", "Intelligent"], answer: "Hardworking" },
+                { question: "'To smell a rat' means:", topic: "Idioms", options: ["To suspect something foul", "To smell a literal rat", "To be happy", "To be confused"], answer: "To suspect something foul" },
+                { question: "Antonym for 'Ancient'?", topic: "Vocabulary", options: ["Modern", "Old", "Past", "Aged"], answer: "Modern" },
+                { question: "Fill in the blank: The ship, with its crew, ___ lost at sea.", topic: "Grammar", options: ["was", "were", "are", "have been"], answer: "was" },
+                { question: "A place where government records are kept is called an:", topic: "One Word Substitution", options: ["Archive", "Library", "Museum", "Hangar"], answer: "Archive" },
+                { question: "Choose the correctly spelt word:", topic: "Spelling", options: ["Accommodation", "Accomodation", "Acommodation", "Acomodation"], answer: "Accommodation" },
+                { question: "'To let the cat out of the bag' means:", topic: "Idioms", options: ["To reveal a secret", "To free a cat", "To cause trouble", "To finish a task"], answer: "To reveal a secret" },
+                { question: "Synonym for 'Ephemeral'?", topic: "Vocabulary", options: ["Short-lived", "Permanent", "Beautiful", "Strong"], answer: "Short-lived" },
+                { question: "Spot the error: 'The news are very encouraging.'", topic: "Grammar", options: ["news are", "very encouraging", "The", "No error"], answer: "news are" },
+                { question: "Antonym for 'Expand'?", topic: "Vocabulary", options: ["Contract", "Grow", "Increase", "Widen"], answer: "Contract" },
+                { question: "A government by one person is called:", topic: "One Word Substitution", options: ["Autocracy", "Democracy", "Oligarchy", "Monarchy"], answer: "Autocracy" },
+                { question: "Fill in the blank: He is afraid ___ spiders.", topic: "Grammar", options: ["of", "from", "with", "about"], answer: "of" }
+            ],
+            'General Studies': [
+                { question: "Who is known as the 'Father of the Indian Constitution'?", topic: "Polity", options: ["Dr. B.R. Ambedkar", "Mahatma Gandhi", "Jawaharlal Nehru", "Sardar Patel"], answer: "Dr. B.R. Ambedkar" },
+                { question: "Which planet is known as the Red Planet?", topic: "Geography", options: ["Mars", "Jupiter", "Venus", "Saturn"], answer: "Mars" },
+                { question: "The Battle of Plassey was fought in:", topic: "History", options: ["1757", "1857", "1764", "1526"], answer: "1757" },
+                { question: "Which of the following is the largest gland in the human body?", topic: "Biology", options: ["Liver", "Pancreas", "Thyroid", "Salivary gland"], answer: "Liver" },
+                { question: "The deficiency of Vitamin C causes:", topic: "Biology", options: ["Scurvy", "Rickets", "Night blindness", "Beri-beri"], answer: "Scurvy" },
+                { question: "Who wrote the national anthem of India?", topic: "History", options: ["Rabindranath Tagore", "Bankim Chandra Chatterjee", "Sarojini Naidu", "Subramania Bharati"], answer: "Rabindranath Tagore" },
+                { question: "The capital of the Mauryan Empire was:", topic: "History", options: ["Pataliputra", "Taxila", "Ujjain", "Vaishali"], answer: "Pataliputra" },
+                { question: "The longest river in the world is:", topic: "Geography", options: ["Nile", "Amazon", "Yangtze", "Ganga"], answer: "Nile" },
+                { question: "Which gas is most abundant in the Earth's atmosphere?", topic: "Geography", options: ["Nitrogen", "Oxygen", "Carbon Dioxide", "Argon"], answer: "Nitrogen" },
+                { question: "The 'Dandi March' is associated with:", topic: "History", options: ["Salt Satyagraha", "Quit India Movement", "Non-Cooperation Movement", "Khilafat Movement"], answer: "Salt Satyagraha" },
+                { question: "The study of earthquakes is known as:", topic: "Geography", options: ["Seismology", "Geology", "Meteorology", "Ecology"], answer: "Seismology" },
+                { question: "Who is the supreme commander of the Indian Armed Forces?", topic: "Polity", options: ["The President", "The Prime Minister", "The Chief of Defence Staff", "The Defence Minister"], answer: "The President" },
+                { question: "The instrument used to measure blood pressure is:", topic: "Physics", options: ["Sphygmomanometer", "Barometer", "Thermometer", "Stethoscope"], answer: "Sphygmomanometer" },
+                { question: "The Gupta Empire was founded by:", topic: "History", options: ["Sri Gupta", "Chandragupta I", "Samudragupta", "Chandragupta II"], answer: "Sri Gupta" },
+                { question: "Which is the smallest state of India by area?", topic: "Geography", options: ["Goa", "Sikkim", "Tripura", "Nagaland"], answer: "Goa" },
+                { question: "The 'powerhouse of the cell' is:", topic: "Biology", options: ["Mitochondrion", "Nucleus", "Ribosome", "Lysosome"], answer: "Mitochondrion" },
+                { question: "The first woman Prime Minister of India was:", topic: "Polity", options: ["Indira Gandhi", "Sarojini Naidu", "Pratibha Patil", "Sonia Gandhi"], answer: "Indira Gandhi" },
+                { question: "Which country is known as the 'Land of the Rising Sun'?", topic: "Geography", options: ["Japan", "China", "South Korea", "Thailand"], answer: "Japan" },
+                { question: "The Battle of Haldighati was fought between Akbar and:", topic: "History", options: ["Maharana Pratap", "Shivaji", "Rana Sanga", "Hemchandra Vikramaditya"], answer: "Maharana Pratap" },
+                { question: "The Rajya Sabha members are elected for a term of:", topic: "Polity", options: ["6 years", "5 years", "4 years", "2 years"], answer: "6 years" }
+            ]
+        },
+        Aptitude: [
+            { question: "Find the missing number: 4, 9, 16, 25, ?", topic: "Number Patterns", options: ["36", "49", "30", "42"], answer: "36" },
+            { question: "If 'CAT' is coded as 24, what is 'DOG' coded as?", topic: "Coding", options: ["26", "27", "25", "28"], answer: "26" },
+            { question: "A man buys a toy for Rs. 100 and sells it for Rs. 120. His profit percentage is:", topic: "Profit & Loss", options: ["20%", "25%", "10%", "15%"], answer: "20%" },
+            { question: "Which number comes next in the series: 2, 5, 10, 17, 26, ?", topic: "Number Patterns", options: ["37", "35", "36", "38"], answer: "37" },
+            { question: "A is B's sister. C is B's mother. D is C's father. How is D related to A?", topic: "Blood Relations", options: ["Maternal Grandfather", "Father", "Grandfather", "Uncle"], answer: "Maternal Grandfather" },
+            { question: "A train 100m long is running at a speed of 30 km/hr. Find the time taken by it to pass a man standing near the railway line.", topic: "Time & Distance", options: ["12 seconds", "10 seconds", "15 seconds", "18 seconds"], answer: "12 seconds" },
+            { question: "Find the odd one out: Car, Bus, Scooter, Bicycle", topic: "Classification", options: ["Bicycle", "Car", "Bus", "Scooter"], answer: "Bicycle" },
+            { question: "If 'WATER' is written as 'YCVGT', how is 'FIRE' written?", topic: "Coding", options: ["HKTG", "GJSF", "HIRE", "FLAME"], answer: "HKTG" },
+            { question: "The average of first 5 prime numbers is:", topic: "Averages", options: ["5.6", "5", "6", "5.4"], answer: "5.6" },
+            { question: "A can do a piece of work in 10 days, and B can do it in 15 days. In how many days will they do it together?", topic: "Work & Time", options: ["6 days", "5 days", "8 days", "12.5 days"], answer: "6 days" },
+            { question: "What is 30% of 200?", topic: "Percentages", options: ["60", "50", "30", "20"], answer: "60" },
+            { question: "Doctor : Patient :: Lawyer : ?", topic: "Analogy", options: ["Client", "Customer", "Accused", "Judge"], answer: "Client" },
+            { question: "Pointing to a photograph, a man said, 'I have no brother or sister, but that man's father is my father's son.' Whose photograph was it?", topic: "Blood Relations", options: ["His son's", "His own", "His father's", "His nephew's"], answer: "His son's" },
+            { question: "A clock shows 4:30. If the minute hand points East, in what direction will the hour hand point?", topic: "Direction Sense", options: ["North-East", "North", "South-East", "North-West"], answer: "North-East" },
+            { question: "Find the missing term: A, C, F, J, O, ?", topic: "Number Patterns", options: ["U", "V", "T", "S"], answer: "U" },
+            { question: "A boat can travel with a speed of 13 km/hr in still water. If the speed of the stream is 4 km/hr, find the time taken by the boat to go 68 km downstream.", topic: "Time & Distance", options: ["4 hours", "5 hours", "3 hours", "2 hours"], answer: "4 hours" },
+            { question: "If today is Monday, what will be the day after 61 days?", topic: "Calendars", options: ["Saturday", "Sunday", "Friday", "Monday"], answer: "Saturday" },
+            { question: "Find the odd one out: 2, 5, 10, 17, 26, 37, 50, 64", topic: "Classification", options: ["64", "50", "37", "26"], answer: "64" },
+            { question: "If the cost of 12 pens is Rs. 84, then what is the cost of 10 such pens?", topic: "Unitary Method", options: ["Rs. 70", "Rs. 72", "Rs. 60", "Rs. 75"], answer: "Rs. 70" },
+            { question: "Arrange the words in a meaningful sequence: 1. Infection 2. Doctor 3. Consultation 4. Illness 5. Medicine", topic: "Logical Sequence", options: ["4, 2, 3, 1, 5", "4, 3, 2, 5, 1", "4, 2, 1, 3, 5", "1, 4, 2, 3, 5"], answer: "4, 2, 3, 1, 5" }
+        ]
+    };
+
+    const views = {
+        category: document.getElementById('categoryView'),
+        selection: document.getElementById('selectionView'),
+        quiz: document.getElementById('quizView'),
+        dashboard: document.getElementById('dashboardView')
+    };
+    
+    const aiHelpModal = document.getElementById('aiHelpModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+
+    function initViews() {
+        views.category.innerHTML = `<h1>Select a Category</h1><div class="grid">
+            <div class="card-3d selection-card" data-category="JEE"><span class="icon">🚀</span><h2>JEE</h2></div>
+            <div class="card-3d selection-card" data-category="NDA"><span class="icon">🛡️</span><h2>NDA</h2></div>
+            <div class="card-3d selection-card" data-category="Aptitude"><span class="icon">💡</span><h2>Aptitude</h2></div>
+        </div>`;
+        views.selection.innerHTML = `<h1 id="subjectViewTitle">Select a Subject</h1><div id="subjectGrid" class="grid"></div>
+            <div style="text-align: center; margin-top: 30px;"><button id="backToCatBtn" class="btn">Back to Categories</button></div>`;
+        views.quiz.innerHTML = `<div id="quizContainer" class="card-3d"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;"><div id="streakTracker"></div><div id="timer"></div></div><div id="progressContainer"></div><div id="questionText"></div><div id="optionsContainer"></div><div style="text-align: right;"><button id="nextBtn" class="btn" style="display:none;">Next</button></div></div>`;
+        views.dashboard.innerHTML = `<h1>Your Performance Analysis</h1><div class="dashboard-grid">
+            <div class="card-3d stat-card"><div id="totalScore" class="value" style="color: var(--accent-blue);">0%</div><div class="label">Your Score</div></div>
+            <div class="card-3d stat-card"><div id="correctAnswers" class="value" style="color:var(--correct-answer);">0</div><div class="label">Correct</div></div>
+            <div class="card-3d stat-card"><div id="incorrectAnswers" class="value" style="color:var(--incorrect-answer);">0</div><div class="label">Incorrect</div></div>
+            <div class="card-3d stat-card"><div id="comparisonValue" class="value">--</div><div class="label">vs. Previous Score</div></div>
+            <div class="card-3d stat-card"><div id="avgTime" class="value" style="color: var(--accent-pink)">0s</div><div class="label">Avg Time/Q</div></div>
+            <div class="card-3d" style="grid-column: 1 / -1;"><h2 style="text-align: center;">Score Distribution</h2><div class="chart-container"><canvas id="scoreChart"></canvas></div></div>
+            <div class="card-3d" style="grid-column: 1 / -1;"><h2 style="text-align: center;">Topic-wise Performance</h2><div class="chart-container"><canvas id="topicChart"></canvas></div></div>
+            <div class="card-3d list-card" style="grid-column: 1 / -1;"><h2>Topics to Improve (Click to get AI Practice Questions)</h2><ul id="weakTopicsList"></ul></div>
+            </div><div style="text-align: center; margin-top: 40px;"><button id="retakeBtn" class="btn">Take Another Test</button></div>`;
+    }
+
+    function switchView(viewId) {
+        Object.values(views).forEach(v => v.classList.remove('active'));
+        views[viewId].classList.add('active');
+    }
+    
+    function setupEventListeners() {
+        views.category.addEventListener('click', e => {
+            const card = e.target.closest('.selection-card');
+            if (!card) return;
+            const category = card.dataset.category;
+            if (category === 'Aptitude') {
+                startQuiz('Aptitude', null);
+            } else {
+                populateSubjectView(category);
+                switchView('selection');
+            }
+        });
+        document.getElementById('backToCatBtn').addEventListener('click', () => switchView('category'));
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            currentQuestionIndex++;
+            showQuestion();
+        });
+        document.getElementById('retakeBtn').addEventListener('click', () => switchView('category'));
+        closeModalBtn.addEventListener('click', () => aiHelpModal.style.display = 'none');
+    }
+    
+    function populateSubjectView(category) {
+        const subjectGrid = document.getElementById('subjectGrid');
+        const title = document.getElementById('subjectViewTitle');
+        title.textContent = `Select a Subject for ${category}`;
+        subjectGrid.innerHTML = '';
+        const icons = { Maths: '📚', Physics: '🔬', Chemistry: '🧪', English: '✍️', 'General Studies': '🌍' };
+        Object.keys(quizData[category]).forEach(subject => {
+            const card = document.createElement('div');
+            card.className = 'card-3d selection-card';
+            card.innerHTML = `<span class="icon">${icons[subject] || '💡'}</span><h2>${subject}</h2>`;
+            card.onclick = () => startQuiz(category, subject);
+            subjectGrid.appendChild(card);
+        });
+    }
+
+    function startQuiz(category, subject) {
+        const allQuestions = subject ? quizData[category][subject] : quizData[category];
+        const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+        currentQuiz = shuffled.slice(0, 10);
+        currentQuestionIndex = 0; score = 0; streak = 0; incorrectQuestions = [];
+        timesPerQuestion.length = 0;
+        switchView('quiz');
+        showQuestion();
+    }
+    
+    function showQuestion() {
+        if (currentQuestionIndex >= currentQuiz.length) {
+            finishQuiz();
+            return;
+        }
+        document.getElementById('streakTracker').textContent = `🔥 Streak: ${streak}`;
+        startTimer();
+        const question = currentQuiz[currentQuestionIndex];
+        document.getElementById('questionText').textContent = question.question;
+        const optionsContainer = document.getElementById('optionsContainer');
+        optionsContainer.innerHTML = '';
+        [...question.options].sort(() => 0.5 - Math.random()).forEach(opt => {
+            const btn = document.createElement('button');
+            btn.textContent = opt;
+            btn.className = 'option-btn';
+            btn.onclick = () => selectAnswer(btn, opt, question.answer);
+            optionsContainer.appendChild(btn);
+        });
+        document.getElementById('nextBtn').style.display = 'none';
+        updateProgressBar();
+    }
+    
+    function selectAnswer(btn, selected, correct) {
+        clearInterval(timerInterval);
+        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+        timesPerQuestion.push(questionTime - timeLeft);
+
+        if (selected === correct) { 
+            if (btn) btn.classList.add('correct'); 
+            score++; 
+            streak++;
+        } else { 
+            if (btn) btn.classList.add('incorrect'); 
+            incorrectQuestions.push(currentQuiz[currentQuestionIndex]); 
+            streak = 0;
+        }
+        document.getElementById('streakTracker').textContent = `🔥 Streak: ${streak}`;
+        document.getElementById('nextBtn').textContent = (currentQuestionIndex === currentQuiz.length - 1) ? 'Finish & See Results' : 'Next';
+        document.getElementById('nextBtn').style.display = 'block';
+        updateProgressBar();
+    }
+    
+    function finishQuiz() {
+        updateDashboard();
+        switchView('dashboard');
+    }
+
+    function updateDashboard() {
+        const total = currentQuiz.length;
+        const correct = score;
+        const incorrect = total - score;
+        const currentScore = total > 0 ? Math.round((correct / total) * 100) : 0;
+        
+        document.getElementById('totalScore').textContent = `${currentScore}%`;
+        document.getElementById('correctAnswers').textContent = correct;
+        document.getElementById('incorrectAnswers').textContent = incorrect;
+
+        const avgTime = timesPerQuestion.length > 0 ? Math.round(timesPerQuestion.reduce((a, b) => a + b, 0) / timesPerQuestion.length) : 0;
+        document.getElementById('avgTime').textContent = `${avgTime}s`;
+        
+        const prevScore = localStorage.getItem('previousScore');
+        const comparisonEl = document.getElementById('comparisonValue');
+        if (prevScore) {
+            const diff = currentScore - parseInt(prevScore);
+            if(diff > 0) { comparisonEl.innerHTML = `▲ +${diff}%`; comparisonEl.className='value up'; }
+            else if(diff < 0) { comparisonEl.innerHTML = `▼ ${diff}%`; comparisonEl.className='value down'; }
+            else { comparisonEl.innerHTML='--'; comparisonEl.className='value'; }
+        } else { comparisonEl.textContent = 'First Test!'; }
+        localStorage.setItem('previousScore', currentScore);
+        
+        const weakTopicsList = document.getElementById('weakTopicsList');
+        weakTopicsList.innerHTML = '';
+        if (incorrectQuestions.length > 0) {
+            const weakTopics = [...new Set(incorrectQuestions.map(q => q.topic))];
+            weakTopics.forEach(topic => {
+                const li = document.createElement('li');
+                li.textContent = topic;
+                li.className = 'clickable';
+                li.onclick = () => getPracticeQuestions(topic, incorrectQuestions.filter(q => q.topic === topic));
+                weakTopicsList.appendChild(li);
+            });
+        } else {
+            weakTopicsList.innerHTML = '<li>No weak topics found. Great job!</li>';
+        }
+        drawCharts(correct, incorrect);
+    }
+    
+    function drawCharts(correct, incorrect) {
+        const styles = getComputedStyle(document.documentElement);
+        const correctColor = styles.getPropertyValue("--correct-answer").trim();
+        const incorrectColor = styles.getPropertyValue("--incorrect-answer").trim();
+        const bgColor = styles.getPropertyValue("--card-bg").trim();
+
+        if(window.scoreChartInstance) window.scoreChartInstance.destroy();
+        window.scoreChartInstance = new Chart(document.getElementById('scoreChart'), {
+            type: 'doughnut',
+            data: { labels:['Correct','Incorrect'], datasets:[{data:[correct, incorrect], backgroundColor:[correctColor, incorrectColor], borderColor:bgColor, borderWidth:4 }] },
+            options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{ position:'bottom', labels: { color: 'white' }}}}
+        });
+        
+        const correctAnswersPerTopic = {};
+        currentQuiz.forEach(q => { correctAnswersPerTopic[q.topic] = 0; });
+        currentQuiz.forEach(q => { if(!incorrectQuestions.some(iq => iq.question === q.question)) correctAnswersPerTopic[q.topic]++; });
+        
+        if(window.topicChartInstance) window.topicChartInstance.destroy();
+        window.topicChartInstance = new Chart(document.getElementById('topicChart'), {
+            type: 'bar',
+            data: { labels: Object.keys(correctAnswersPerTopic), datasets:[{label:'Correct Answers', data:Object.values(correctAnswersPerTopic), backgroundColor:correctColor }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales: { y: { ticks: { color: 'white', stepSize: 1 } }, x: { ticks: { color: 'white' } } } }
+        });
+    }
+
+    function getPracticeQuestions(topic, specificIncorrectQuestions) {
+        aiHelpModal.style.display = 'flex';
+        document.getElementById('aiLoader').style.display = 'block';
+        document.getElementById('aiResult').style.display = 'none';
+        fetch('/generate_practice_questions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic: topic, questions: specificIncorrectQuestions })
+        })
+        .then(response => {
+            if (!response.ok) { throw new Error(`Network error: ${response.statusText}`); }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) { throw new Error(data.error); }
+            document.getElementById('aiTopicTitle').textContent = `Practice Set for ${data.topic}`;
+            const practiceContainer = document.getElementById('aiPracticeQuestions');
+            practiceContainer.innerHTML = '';
+            data.generated_questions.forEach(q => {
+                const item = document.createElement('div');
+                item.className = 'question-item';
+                item.innerHTML = `
+                    <p><strong>Q:</strong> ${q.question}</p>
+                    <ul>${q.options.map(opt => `<li>${opt}</li>`).join('')}</ul>
+                    <p><strong>Answer:</strong> ${q.answer}</p>
+                    <small><strong>Relevance:</strong> ${q.relevance}</small>
+                `;
+                practiceContainer.appendChild(item);
+            });
+            document.getElementById('aiLoader').style.display = 'none';
+            document.getElementById('aiResult').style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error fetching AI questions:', error);
+            document.getElementById('aiTopicTitle').textContent = 'Error';
+            document.getElementById('aiPracticeQuestions').innerHTML = `<p>Sorry, couldn't generate questions. Please check the Flask console for errors.</p>`;
+            document.getElementById('aiLoader').style.display = 'none';
+            document.getElementById('aiResult').style.display = 'block';
+        });
+    }
+
+    function updateProgressBar() {
+        const progressContainer = document.getElementById('progressContainer');
+        progressContainer.innerHTML = '';
+        currentQuiz.forEach((q, index) => {
+            const seg = document.createElement('div');
+            seg.className = 'progress-segment';
+            seg.style.width = `${100 / currentQuiz.length}%`;
+            let colorVar = 'var(--not-attempted)';
+            if (index < currentQuestionIndex) {
+                const pastQuestion = currentQuiz[index];
+                if (incorrectQuestions.some(iq => iq.question === pastQuestion.question)) {
+                    colorVar = 'var(--incorrect-answer)';
+                } else {
+                    colorVar = 'var(--correct-answer)';
+                }
+            }
+            seg.style.backgroundColor = colorVar;
+            progressContainer.appendChild(seg);
+        });
+    }
+    
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = questionTime;
+        const timerEl = document.getElementById('timer');
+        timerEl.textContent = formatTime(timeLeft);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerEl.textContent = formatTime(timeLeft);
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                selectAnswer(null, 'skipped', currentQuiz[currentQuestionIndex].answer);
+            }
+        }, 1000);
+    }
+
+    function formatTime(sec) {
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return `⏱ ${m}:${s}`;
+    }
+    
+    initViews();
+    setupEventListeners();
+});
+</script>
+</body>
+</html>
+

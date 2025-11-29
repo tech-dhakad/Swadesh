@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swadesh Quiz Challenge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-glow: rgba(0, 255, 255, 0.5);
+      --secondary-glow: rgba(255, 0, 255, 0.5);
+      --correct-color: #28a745;
+      --incorrect-color: #dc3545;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #121212;
+      color: #fff;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding-top: 80px; /* Added padding to prevent content from hiding behind the nav */
+      box-sizing: border-box;
+    }
+
+    /* === NAV BAR KI STYLING YAHAN ADD KI GAYI HAI === */
+    nav {
+      position: absolute; /* Button ko page ke hisaab se position karne ke liye */
+      top: 20px;         /* Upar se 20px ka gap */
+      left: 20px;        /* Left se 20px ka gap */
+      z-index: 10;       /* Yeh ensure karta hai ki button baaki content ke upar rahe */
+    }
+
+    /* Improved Background Animation */
+    .background {
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, #6a11cb, #2575fc, #ff00ff, #00ffff);
+      background-size: 400% 400%;
+      opacity: 0.15;
+      animation: gradient-animation 20s ease infinite;
+      z-index: -1;
+    }
+    @keyframes gradient-animation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      max-width: 600px;
+      width: 90%;
+      margin: auto;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1, h2 {
+      background: linear-gradient(90deg, #ff00ff, #00ffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 10px var(--secondary-glow);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+    }
+
+    /* Glassmorphism Effect for Boxes */
+    .box {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .option-btn {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      color: white;
+      font-size: 1.1rem;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .option-btn:not(:disabled):hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 0 20px var(--primary-glow);
+      border-color: rgba(0, 255, 255, 0.7);
+    }
+
+    .option-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    
+    .option-btn.correct {
+        background: var(--correct-color);
+        box-shadow: 0 0 15px var(--correct-color);
+    }
+
+    .option-btn.incorrect {
+        background: var(--incorrect-color);
+        box-shadow: 0 0 15px var(--incorrect-color);
+    }
+
+    .score-board {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.2rem;
+    }
+
+    .leaderboard ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .leaderboard li {
+      margin: 8px 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      transition: all 0.2s ease;
+    }
+    .leaderboard li:hover {
+        background: rgba(0, 255, 255, 0.1);
+        transform: translateX(5px);
+    }
+
+    input {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      outline: none;
+      margin-right: 10px;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 1rem;
+    }
+    input::placeholder { color: #ccc; }
+
+    .btn {
+      padding: 12px 22px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      color: #fff;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+        box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    #endScreen h2 { font-size: 2rem; }
+    #finalScore { font-size: 1.5rem; margin-bottom: 20px; }
+
+  </style>
+</head>
+<body>
+  <div class="background"></div>
+  <nav>
+    <a href="{{ url_for('home') }}" class="btn" style="text-decoration: none;">Back to Home</a> 
+  </nav>
+  <div class="container">
+    <h1>Swadesh Quiz Challenge</h1>
+
+    <div class="input-box box">
+      <input type="text" id="playerName" placeholder="Enter your name" />
+      <button class="btn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="quizArea" style="display:none;">
+      <div class="score-board box">
+        <p><b>Player:</b> <span id="displayPlayerName"></span></p>
+        <p><b>XP:</b> <span id="xp">0</span></p>
+      </div>
+
+      <div class="question-box box">
+        <h2 id="question">Question will appear here</h2>
+        <div class="options" id="options"></div>
+      </div>
+    </div>
+
+    <div id="endScreen" class="box" style="display:none;">
+        <h2>Quiz Completed!</h2>
+        <p id="finalScore">Your Final XP: 0</p>
+        <button class="btn" onclick="playAgain()">Play Again</button>
+    </div>
+
+    <div class="leaderboard box">
+      <h2>Leaderboard</h2>
+      <ul id="leaderboardList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "Pyas lage toh pi sakte hai, bhukh lage toh kha sakte hai aur agar thand lage toh use jala bhi sakte hai. Bolo kya hai woh ?",
+        options: ["Paper", "Nariyal", "Chocolate", "Chips"],
+        answer: "Nariyal"
+      },
+      {
+        question: "Jimmy's father has three sons- Paul I and Paul II. Can you guess the name of the third son?",
+        options: ["Paul III", "Jerin", "Jimmy", "Noner"],
+        answer: "Jimmy"
+      },
+      {
+        question: "How many months have 28 days?",
+        options: ["2", "1", "10", "12"],
+        answer: "12"
+      },
+      {
+        question: "A farmer has 17 goats. All of them but 8 die. How many goats are alive?",
+        options: ["8", "9", "10", "11"],
+        answer: "8"
+      }
+    ];
+
+    let currentQuestion = 0;
+    let xp = 0;
+    let player = "";
+
+    const nameInput = document.getElementById("playerName");
+    const inputBox = document.querySelector(".input-box");
+    const quizArea = document.getElementById("quizArea");
+    const endScreen = document.getElementById("endScreen");
+    const xpDisplay = document.getElementById("xp");
+    const questionText = document.getElementById("question");
+    const optionsDiv = document.getElementById("options");
+    const leaderboardList = document.getElementById("leaderboardList");
+
+    function startGame() {
+      player = nameInput.value.trim();
+      if(player === "") {
+        alert("Please enter your name!");
+        return;
+      }
+      inputBox.style.display = "none";
+      endScreen.style.display = "none";
+      quizArea.style.display = "block";
+      document.getElementById("displayPlayerName").textContent = player;
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      if(currentQuestion >= questions.length) {
+        showEndScreen();
+        return;
+      }
+      // Reset button styles from previous question
+      optionsDiv.innerHTML = "";
+      const q = questions[currentQuestion];
+      questionText.textContent = q.question;
+
+      q.options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.textContent = opt;
+        btn.classList.add("option-btn");
+        btn.onclick = () => checkAnswer(opt, btn);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, btn) {
+      const correctAnswer = questions[currentQuestion].answer;
+      const optionButtons = document.querySelectorAll(".option-btn");
+      
+      // Disable all buttons to prevent multiple answers
+      optionButtons.forEach(button => button.disabled = true);
+      
+      if (selected === correctAnswer) {
+    4 
+     xp += 10;
+        xpDisplay.textContent = xp;
+        btn.classList.add("correct");
+      } else {
+        btn.classList.add("incorrect");
+        // Highlight the correct answer for the user
+        optionButtons.forEach(button => {
+            if(button.textContent === correctAnswer) {
+                button.classList.add("correct");
+            }
+        });
+      }
+      
+      // Wait for a moment before loading the next question
+      setTimeout(() => {
+        currentQuestion++;
+        loadQuestion();
+      }, 1500); // 1.5 second delay
+    }
+
+    function showEndScreen() {
+        quizArea.style.display = 'none';
+        endScreen.style.display = 'block';
+        document.getElementById('finalScore').textContent = `Your Final XP: ${xp}`;
+        saveScore();
+    }
+
+    function playAgain() {
+        currentQuestion = 0;
+        xp = 0;
+        xpDisplay.textContent = xp;
+        startGame(); // Re-uses the start game logic to show the quiz
+    }
+
+    function saveScore() {
+      let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+      leaderboard.push({ name: player, score: xp });
+      leaderboard.sort((a, b) => b.score - a.score);
+      // Keep only top 5 scores
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+      renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+      let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+      leaderboardList.innerHTML = "";
+      if (leaderboard.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "No scores yet. Be the first!";
+        leaderboardList.appendChild(li);
+      } else {
+        leaderboard.forEach((entry, index) => {
+            const li = document.createElement("li");
+            li.textContent = `🏆 ${index+1}. ${entry.name} - ${entry.score} XP`;
+            leaderboardList.appendChild(li);
+        });
+      }
+    }
+
+    // Initial call to display the leaderboard on page load
+    renderLeaderboard();
+  </script>
+</body>
+</html>

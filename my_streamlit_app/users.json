@@ -1,0 +1,26 @@
+{
+    "ak": {
+        "email": "dhakadkaushal123@gmail.com",
+        "school": "father agnel school",
+        "branch": "PCM",
+        "password": "scrypt:32768:8:1$y5jKFhP9qfNI45q6$d681b4469c8596b6e1fb141a7202b44e98ac7cb0d0f6400d8cf1eded55cfe8fc4de721ea7de37d142775604b40e21cfe279383abe8af451639d4f3167c5013f3"
+    },
+    "Arpita Sharma ": {
+        "email": "arpitasharma9891@gmail.com",
+        "school": "father agnel school",
+        "branch": "PCM",
+        "password": "scrypt:32768:8:1$txVIDRdZQt6PNL45$ebe7af55e688d80bffc2319b561c7233013891c061b00cfd38b00df6cb820538b2be9dd4bcd758c442eb042363efaf6e5a69ec65bc3d9960258113f4680d134a"
+    },
+    "kaushal": {
+        "email": "dhakadkaushal@gmail.com",
+        "school": "Sistec",
+        "branch": "AI/DS",
+        "password": "scrypt:32768:8:1$Hz5yhZ6ARWQCOYTt$d61974df18bb99fe52e0e9a726667751b5c84950e034c79ae6bb07d3fade2ecad9d94908389c72babee0c6986a843e4985d69118bb10b4aac88a0428c095b363"
+    },
+    "kaushal Dhakad": {
+        "email": "dhakadkaushal123@gmail.com",
+        "school": "father agnel school",
+        "branch": "PCM",
+        "password": "scrypt:32768:8:1$5OW6J2PNxEFPBXv3$c19c5f097c9a6963b1cfa64a2a68309091b98b242c5dffdff38a35d77029bb54d38ad5ea16de9082838d6180b91a442ea3eadfd436c9fc762171627f4ab603c4"
+    }
+}

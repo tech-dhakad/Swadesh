@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stunning Landing Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0c0a18; /* Thoda sa purple/blue tint wala black */
+            --primary-glow: rgba(138, 43, 226, 0.6); /* BlueViolet glow */
+            --secondary-glow: rgba(0, 255, 255, 0.6); /* Aqua glow */
+            --text-color: #f0f0f0;
+            --text-muted: #a9a9a9;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Animated Gradient Background --- */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 15% 25%, var(--primary-glow), transparent 40%),
+                        radial-gradient(circle at 85% 75%, var(--secondary-glow), transparent 40%);
+            animation: moveGlow 15s ease-in-out infinite alternate;
+            filter: blur(100px);
+        }
+
+        @keyframes moveGlow {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+            to {
+                transform: translate(50px, -50px) scale(1.2);
+            }
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 5%;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 30px;
+            font-weight: 300;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        /* --- Hero Section --- */
+        .hero-section {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 20px;
+        }
+        
+        .hero-content {
+             animation: fadeInUp 1.2s ease-out 0.2s;
+             animation-fill-mode: backwards; /* Animation start hone se pehle element hidden rahega */
+        }
+
+        .hero-headline {
+            font-size: clamp(2.5rem, 6vw, 4.5rem); /* Responsive font size */
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+            background: linear-gradient(90deg, #ffffff, #d3d3d3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero-headline .highlight {
+            background: linear-gradient(90deg, #8A2BE2, #00FFFF); /* BlueViolet to Aqua gradient */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block; /* Agli line me aane ke liye */
+        }
+
+        .hero-subheadline {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: 300;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 25px auto 40px auto;
+        }
+
+        /* --- Gradient Button --- */
+        .cta-button {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            color: white;
+            text-decoration: none;
+            padding: 15px 35px;
+            border-radius: 50px; /* Pill shape */
+            border: none;
+            background-image: linear-gradient(90deg, #8A2BE2 0%, #4158D0 50%, #00FFFF 100%);
+            background-size: 200% auto;
+            cursor: pointer;
+            transition: all 0.4s ease-in-out;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
+        }
+
+        .cta-button:hover {
+            background-position: right center; /* Gradient shift effect */
+            transform: translateY(-3px);
+            box-shadow: 0 0 35px rgba(0, 255, 255, 0.5);
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="#" class="logo">Teach-Mate</a>
+        <div class="nav-links">
+            <a href="#">Login</a>
+        </div>
+    </nav>
+
+    <main class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-headline">
+                Unlock Your Potential,
+                <span class="highlight">Teach-Mate</span>
+            </h1>
+            <p class="hero-subheadline">
+                Your personal AI assistant for instant answers, content creation, and problem-solving.Streamline your workflow and unlock your creative potential effortlessly.
+            </p>
+            <a href="#" class="cta-button">Get Started</a>
+        </div>
+    </main>
+
+</body>
+</html>
+
+

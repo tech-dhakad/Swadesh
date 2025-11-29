@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exam Categories - Futuristic</title>
+  <style>
+    :root {
+      --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --bg-dark: #0a0a0f;
+      --text-light: #f1f5f9;
+      --text-muted: #94a3b8;
+      --gradient: linear-gradient(90deg, #ff00ff, #00ffff);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --hover-glow: 0 0 20px rgba(0, 255, 255, 0.4),
+                      0 0 40px rgba(255, 0, 255, 0.3);
+    }
+
+    body {
+      margin: 0;
+      padding: 2rem;
+      background: var(--bg-dark);
+      color: var(--text-light);
+      font-family: var(--font-family);
+    }
+    
+    /* === NAV AUR BUTTON KI STYLING YAHAN ADD KI GAYI HAI === */
+    nav {
+      position: absolute;
+      top: 2rem;
+      left: 2rem;
+      z-index: 100;
+    }
+
+    .btn {
+      text-decoration: none;
+      color: var(--text-light);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    .btn:hover {
+      box-shadow: var(--hover-glow);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    /* === STYLING END === */
+
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-top: 50px; /* Thodi padding taaki content button ke neeche na aaye */
+    }
+
+    .main-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .main-header h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .main-header p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+
+    .card-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.35s ease;
+      backdrop-filter: blur(10px);
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    .card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: var(--hover-glow);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .card-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      z-index: 1;
+      flex-grow: 1; 
+    }
+
+    .card-content h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin: 0;
+      color: white;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      font-size: 0.85rem;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .tag:hover {
+      background: var(--gradient);
+      color: #000;
+      border-color: transparent;
+    }
+    
+    .explore-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-decoration: none;
+      transition: gap 0.2s ease;
+      margin-top: auto; 
+    }
+
+    .card-link:hover .explore-btn {
+      gap: 12px;
+    }
+
+    .icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .card:hover .icon-wrapper {
+      transform: scale(1.1);
+      box-shadow: 0 0 15px rgba(0,255,255,0.5);
+    }
+
+    .icon-wrapper img {
+      width: 32px;
+      height: 32px;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 16px;
+      }
+      .card-content h2 {
+        font-size: 1.3rem;
+      }
+      nav {
+        top: 1rem;
+        left: 1rem;
+      }
+      .container {
+        padding-top: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="{{ url_for('home') }}" class="btn">← Back to Home</a>
+  </nav>
+
+  <div class="container">
+    <header class="main-header">
+      <h1>Exam Categories</h1>
+      <p>Swadesh – Where exam dreams turn into achievements.”</p>
+    </header>
+
+    <div class="categories-grid">
+      
+      <a href="/neet-courses" class="card-link">
+        <div class="card">
+          <div class="card-content">
+            <h2>NEET</h2>
+            <div class="tags">
+              <a href="https://www.youtube.com/@PhysicsWallah/playlists" class="tag">Free Courses</a>
+              <a href="https://www.pw.live/neet/batches" class="tag">Paid Courses</a>
+            </div>
+          </div>  
+          <div class="icon-wrapper">
+            <img src="https://png.pngtree.com/png-vector/20230418/ourmid/pngtree-medical-logo-vector-png-image_6713322.png" alt="NEET Icon">
+          </div>
+        </div>
+      </a>
+
+      <a href="/iit-jee-courses" class="card-link">
+        <div class="card">
+          <div class="card-content">
+            <h2>IIT JEE</h2>
+            <div class="tags">
+              <a href="https://www.youtube.com/@PW-JEEWallah/playlists" class="tag">Free Courses</a>
+              <a href="https://www.pw.live/iit-jee/batches" class="tag">Paid Courses</a>
+            </div>
+          </div>
+          <div class="icon-wrapper">
+            <img src="https://img.icons8.com/color/48/physics.png" alt="IIT Icon">
+          </div>
+        </div>
+      </a>
+
+      <a href="/defence-courses" class="card-link">
+        <div class="card">
+          <div class="card-content">
+            <h2>Defence</h2>
+            <div class="tags">
+              <a href="https://www.youtube.com/@DefenceWallahPW" class="tag">NDA</a>
+              <a href="https://www.pw.live/defence/ssb/batches" class="tag">SSB</a>
+              <a href="https://www.pw.live/defence/cds-afcat/batches" class="tag">CDS</a>
+              <a href="https://www.pw.live/defence/agniveer/batches" class="tag">Agniveer</a>
+            </div>
+          </div>
+          <div class="icon-wrapper">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR62Ywkuny525o3sfTze6F01EetyOoy0yBwm8iPgIh5gD2K0kJ1-ssO0tm5X3sPJkU9HBQ&usqp=CAU" alt="Defence Icon">
+          </div>
+        </div>
+      </a>
+
+      <a href="/govt-job-exams" class="card-link">
+        <div class="card">
+          <div class="card-content">
+            <h2>Govt Job Exams</h2>
+            <div class="tags">
+              <a href="https://www.pw.live/ssc" class="tag">SSC</a>
+              <a href="https://www.pw.live/banking" class="tag">Banking</a>
+              <a href="https://www.pw.live/teaching" class="tag">Teaching</a>
+              <a href="https://www.pw.live/judiciary" class="tag">Judiciary</a>
+            </div>
+          </div>
+          <div class="icon-wrapper">
+            <img src="https://lh3.googleusercontent.com/edPEPbItvNFlt6ldWbhIWeFo6KeIV6S7RiQGSmElsV3bqYb6_4schCAd_lV9ayrmDLY" alt="Govt Icon">
+          </div>
+        </div>
+      </a>
+
+      
+
+    </div>
+  </div>
+</body>
+</html>

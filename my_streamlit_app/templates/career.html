@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Guide - Swadesh</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ===== Base & Theme ===== */
+        :root {
+            --bg-color: #000000;
+            /* Updated to match landing page */
+            --surface-color: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --text-color: #fff;
+            --text-muted: #ccc;
+            --pink: #e31dcc;
+            --cyan: #4cc9f0;
+            --purple: #7b4be0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            /* MODIFIED: Changed from radial-gradient to a solid color to match your landing page */
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .top-heading-container {
+            text-align: center;
+            padding: 40px 20px 30px 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .top-heading-container h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, rgb(0, 81, 255), rgb(1, 238, 255));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(76, 201, 240, 0.2);
+        }
+
+        .wrapper {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* ===== Navbar ===== */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .logo h2 {
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            font-size: 14px;
+            margin-left: 30px;
+        }
+
+        .nav-links .btn-home {
+            background: transparent;
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .nav-links .btn-home:hover {
+            background: var(--cyan);
+            color: #000;
+        }
+
+        /* ===== REVISED: Glowing Glassmorphism Choice Cards ===== */
+
+        /* Make sure you have these variables in your :root, or replace them with actual color codes */
+        :root {
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-color: #f0f0f0;
+            --text-muted: #c0c0c0;
+            --cyan: #04e6ff;
+            --purple: #4545ff;
+            --pink: #ff1294;
+            --dark-bg-for-glow: rgba(129, 129, 130, 0.596);
+            /* Dark, semi-transparent base for the glass effect */
+        }
+
+        .choice-container {
+            display: flex;
+            flex-wrap: wrap;
+            /* Added for responsiveness on smaller screens */
+            justify-content: center;
+            gap: 40px;
+            margin: 60px 0;
+            perspective: 1000px;
+            /* Adds depth for 3D transforms */
+        }
+
+        .choice-card {
+            /* --- The Glass Effect --- */
+            background: var(--dark-bg-for-glow);
+            backdrop-filter: blur(15px);
+            /* This blurs the content behind the card */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color);
+            /* Subtle border to define the edge */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            /* Soft shadow for depth */
+
+            /* --- General Styling --- */
+            border-radius: 16px;
+            padding: 40px;
+            width: 300px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            /* Smoother transition */
+            transform: rotateY(0deg);
+            /* Initial state for 3D hover */
+        }
+
+        .choice-card:hover {
+            transform: translateY(-10px) rotateY(5deg);
+            /* Lifts up and slightly tilts for a 3D effect */
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- Specific Card Glows on Hover --- */
+        /* Mentor Card */
+        #mentor-choice:hover {
+            border-color: var(--cyan);
+            /* Multiple box-shadows: one for the color glow, one for depth */
+            box-shadow: 0 0 30px 0 rgba(4, 230, 255, 0.5), 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* AI Card */
+        #ai-choice:hover {
+            border-color: var(--pink);
+            box-shadow: 0 0 30px 0 rgba(255, 18, 148, 0.5), 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+        }
+
+
+        /* --- Content Styling --- */
+        .choice-card .icon {
+            font-size: 3.5rem;
+            /* Slightly larger icon */
+            margin-bottom: 20px;
+            line-height: 1;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+            /* More prominent icon glow */
+            opacity: 0.9;
+        }
+
+        .choice-card h2 {
+            font-size: 1.6rem;
+            margin: 0 0 10px 0;
+            color: #ffffff;
+            /* Solid white is better for readability on a glass bg */
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+            /* Text glow */
+        }
+
+        .choice-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin: 0;
+            text-shadow: none;
+            /* Removed shadow from paragraph for better readability */
+        }
+
+        /* ===== Career Guide Section (Mentor Section) ===== */
+        .guide-container {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(20px);
+        }
+
+        .guide-details {
+            flex: 1;
+            text-align: left;
+        }
+
+        .guide-details h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 0 0 15px 0;
+            line-height: 1.2;
+            background: linear-gradient(90deg, var(--pink), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .guide-details p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .guide-photo {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .guide-photo img {
+            width: 100%;
+            max-width: 350px;
+            height: auto;
+            border-radius: 12px;
+            border: black;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
+            transition: transform 0.3s ease;
+        }
+
+        .guide-photo img:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        /* ===== Social Links Styling ===== */
+        .social-links {
+            margin-top: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .social-links a:hover {
+            transform: scale(1.15);
+        }
+
+        .social-links svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--text-muted);
+            transition: fill 0.2s ease-in-out;
+        }
+
+        .social-links a:hover svg {
+            fill: var(--cyan);
+        }
+
+        /* ===== MODAL (POPUP) CSS ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #101932;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 2rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-submit {
+            background: linear-gradient(90deg, var(--pink), var(--cyan));
+            border: none;
+            color: #fff;
+            padding: 15px 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-submit:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+
+        /* ===== Responsive Design ===== */
+        @media (max-width: 768px) {
+            .top-heading-container h1 {
+                font-size: 2.5rem;
+            }
+
+            .choice-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .guide-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .guide-details {
+                text-align: center;
+            }
+
+            .social-links {
+                justify-content: center;
+            }
+
+            .guide-photo {
+                margin-top: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-heading-container">
+        <h1>Career Guide</h1>
+    </div>
+    <div class="wrapper">
+        <nav class="navbar">
+            <a href="{{ url_for('home') }}" class="logo">
+            </a>
+            <div class="nav-links">
+                <a href="{{ url_for('home') }}" class="btn-home">Back to Home</a>
+            </div>
+        </nav>
+
+        <main>
+            <div class="choice-container" id="choice-container">
+                <div class="choice-card" id="mentor-choice">
+                    <img src="{{ url_for('static', filename='assets/images/teacher.png') }}" alt="Robo LOgo"
+                        style="width:120px;height:100px;">
+                    <h2>Guidance from Mentor</h2>
+                    <p>Get personalized advice and insights from an experienced industry professional.</p>
+                </div>
+                <div class="choice-card" id="ai-choice">
+                    <img src="{{ url_for('static', filename='assets/images/robo.png') }}" alt="Robo LOgo"
+                        style="width:70px;height:100px;">
+                    <h2>Guidance from AI</h2>
+                    <p>Receive an instant, data-driven career roadmap based on your skills and interests.</p>
+                </div>
+            </div>
+
+            <div id="mentor-section" style="display: none;">
+                <div class="guide-container">
+                    <div class="guide-details">
+                        <h1>Dr. Vasima Khan</h1>
+                        <p>
+                            AI/ML Specialist with a PhD in Computer Science and 13+ years of expertise in Machine
+                            Learning,
+                            Deep Learning (GANs, NLP), and Data Science, backed by certifications from Infosys
+                            (Generative
+                            AI), Wipro (Data Science), and IITs. Proficient in Python, TensorFlow, and others with 20+
+                            research publications in AI/ML
+                        </p>
+                        <div class="social-links">
+                            <a href="https://www.linkedin.com/in/dr-vasima-khan-87333218a/?originalSubdomain=in"
+                                target="_blank" title="Contact on LinkedIn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path
+                                        d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                                </svg>
+                            </a>
+                            <a href="https://wa.me/919977725489" target="_blank" title="Contact on WhatsApp">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path
+                                        d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.451-4.437-9.887-9.888-9.888-5.451 0-9.887 4.436-9.888 9.888.001 2.228.651 4.315 1.731 6.086l.287.492-1.24 4.515 4.59-1.205.472.282z" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="guide-photo">
+                        <img src="https://media.licdn.com/dms/image/v2/D4D03AQFh_VBRxtHszQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1710489666304?e=1761177600&v=beta&t=LaEc-YvSKrDUDk7O0PfQbEGRSh0cx2hF0hMMDpYp90g"
+                            alt="Career Guide Dr. Vasima Khan">
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Your Details for AI Guidance</h2>
+                <button class="close-btn" id="close-modal-btn">&times;</button>
+            </div>
+            <form id="guidance-form">
+                <div class="form-group">
+                    <label for="current-field">Your Current Field/Education</label>
+                    <input type="text" id="current-field" placeholder="e.g., Computer Science Student" required>
+                </div>
+                <div class="form-group">
+                    <label for="skills">Your Skills</label>
+                    <textarea id="skills" rows="3" placeholder="e.g., Python, Java, SQL, Public Speaking"
+                        required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="interests">Your Interests & Hobbies</label>
+                    <textarea id="interests" rows="3" placeholder="e.g., Gaming, Writing, Problem Solving"
+                        required></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Get Your Roadmap</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Get all the elements we need to interact with
+        const mentorChoiceCard = document.getElementById('mentor-choice');
+        const aiChoiceCard = document.getElementById('ai-choice');
+        const choiceContainer = document.getElementById('choice-container');
+        const mentorSection = document.getElementById('mentor-section');
+        const detailsModal = document.getElementById('details-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const guidanceForm = document.getElementById('guidance-form');
+        const submitBtn = guidanceForm.querySelector('button[type="submit"]');
+
+        // Event Listener for Mentor Choice Card
+        mentorChoiceCard.addEventListener('click', () => {
+            choiceContainer.style.display = 'none'; // Hide the choice cards
+            mentorSection.style.display = 'block';   // Show the mentor details
+        });
+
+        // Event Listener for AI Choice Card
+        aiChoiceCard.addEventListener('click', () => {
+            detailsModal.style.display = 'flex'; // Show the AI details popup
+        });
+
+        // --- All the existing modal logic remains the same ---
+        const closeModal = () => {
+            detailsModal.style.display = 'none';
+        };
+
+        closeModalBtn.addEventListener('click', closeModal);
+
+        detailsModal.addEventListener('click', (e) => {
+            if (e.target === detailsModal) {
+                closeModal();
+            }
+        });
+
+        guidanceForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const originalButtonText = submitBtn.textContent;
+            submitBtn.textContent = 'Generating...';
+            submitBtn.disabled = true;
+
+            const userDetails = {
+                field: document.getElementById('current-field').value,
+                skills: document.getElementById('skills').value,
+                interests: document.getElementById('interests').value,
+            };
+
+            try {
+                const response = await fetch('/generate_roadmap', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userDetails),
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    window.location.href = result.redirect_url;
+                } else {
+                    alert('Error generating roadmap. The AI might be unable to process the request. Please try again or refine your input.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('A network error occurred. Please try again.');
+            } finally {
+                submitBtn.textContent = originalButtonText;
+                submitBtn.disabled = false;
+            }
+        });
+
+    </script>
+</body>
+
+</html>

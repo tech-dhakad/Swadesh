@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swadesh - Interactive Python Learning</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/dracula.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* --- Root Variables for a consistent theme --- */
+        :root {
+            --bg-dark: #000000; /* Matching landing page background */
+            --bg-medium: rgba(15, 24, 43, 0.8); /* Translucent panel background (glass effect) */
+            --bg-light: rgba(255, 255, 255, 0.1); /* Lighter accents/borders (glass border) */
+            
+            --text-color: #e2e8f0; /* Light text for readability */
+            --text-muted: #94a3b8; /* Muted text for secondary info */
+            
+            --gradient-start: #3B82F6; /* Blue from landing page */
+            --gradient-end: #00A9FF;   /* Cyan from landing page */
+            
+            --accent-green: #50fa7b; /* Draculas green (for contrast/highlights) */
+            --accent-orange: #ffb86c; /* Draculas orange */
+            --accent-purple: #bd93f9; /* Draculas purple */
+            --accent-red: #ff5555;    /* Errors */
+            
+            --button-primary: var(--gradient-end); /* Primary button color */
+            --button-secondary: var(--accent-orange); /* Secondary button color */
+            
+            --font-code: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; /* Code font */
+            --font-body: 'Poppins', Arial, sans-serif; /* Body font */
+        }
+
+        /* --- Global Reset & Base Styling --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: var(--font-body);
+            background-color: var(--bg-dark);
+            color: var(--text-color);
+            overflow: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- Main Container for 3-Panel Layout --- */
+        .main-container {
+            display: flex;
+            height: 100vh;
+            gap: 10px; /* Increased gap */
+            padding: 10px; /* Increased padding */
+            box-sizing: border-box;
+        }
+
+        /* --- Panel Base Styling (Glassmorphism) --- */
+        .panel {
+            padding: 30px; /* More padding */
+            box-sizing: border-box;
+            height: 100%;
+            overflow-y: auto;
+            border-radius: 15px; /* More rounded corners */
+            background: var(--bg-medium); /* Translucent background */
+            border: 1px solid var(--bg-light); /* Subtle border */
+            backdrop-filter: blur(10px); /* Frosted glass effect */
+            -webkit-backdrop-filter: blur(10px); /* For Safari */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Deeper shadow */
+            transition: all 0.4s ease-in-out;
+            position: relative;
+            isolation: isolate; /* To ensure backdrop-filter works */
+        }
+        /* Custom Scrollbar for panels */
+        .panel::-webkit-scrollbar { width: 12px; }
+        .panel::-webkit-scrollbar-track { background: transparent; border-radius: 10px; }
+        .panel::-webkit-scrollbar-thumb { 
+            background: var(--bg-light); 
+            border-radius: 10px; 
+            border: 3px solid var(--bg-medium);
+        }
+        .panel:hover { 
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8); 
+            border-color: rgba(var(--gradient-end), 0.7); /* Highlight border on hover */
+            transform: translateY(-2px); /* Slight lift effect */
+        }
+
+
+        /* --- Sidebar --- */
+        .sidebar { flex: 0 0 320px; border-right: none; } /* Wider sidebar */
+        .sidebar h3 {
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            border-bottom: 2px solid var(--bg-light);
+            padding-bottom: 15px;
+            margin-top: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(var(--gradient-end), 0.5);
+            letter-spacing: 0.8px;
+        }
+        .sidebar ul { list-style-type: none; padding: 0; margin: 0 0 35px 0; }
+        .sidebar li a {
+            display: block;
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 15px 20px; /* More padding */
+            border-radius: 12px; /* More rounded */
+            transition: background-color 0.3s, color 0.3s, transform 0.2s, box-shadow 0.3s, border-color 0.3s;
+            font-size: 1.05em;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            margin-bottom: 8px; /* More space */
+            border: 1px solid transparent;
+        }
+        .sidebar li a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(var(--gradient-start), 0.3), rgba(var(--gradient-end), 0.3));
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-out;
+            z-index: -1;
+            border-radius: 12px;
+        }
+        .sidebar li a:hover::before, .sidebar li a.active::before { transform: translateX(0); }
+        .sidebar li a.active {
+            color: var(--text-color); /* Active color becomes white */
+            background: linear-gradient(90deg, rgba(var(--gradient-start), 0.5), rgba(var(--gradient-end), 0.5));
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(var(--gradient-end), 0.6);
+            border-color: var(--gradient-end);
+            transform: translateX(5px);
+        }
+        .sidebar li a:hover {
+            color: var(--text-color);
+            transform: translateX(8px);
+        }
+
+        /* --- Main Content (Explanation & Questions) --- */
+        .content-panel { flex: 2.5; box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7); } /* Even stronger shadow */
+        #topic-title {
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            margin-top: 0;
+            font-size: 2.8rem; /* Larger title */
+            border-bottom: 3px solid var(--bg-light);
+            padding-bottom: 18px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(var(--gradient-end), 0.6); /* Intense glow */
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+        #topic-explanation p, #topic-explanation li {
+            margin-bottom: 20px;
+            font-size: 1.15em;
+            color: var(--text-color);
+            text-align: justify;
+        }
+        #topic-explanation strong { color: var(--accent-orange); font-weight: 600; }
+        #topic-explanation code {
+            background-color: var(--bg-dark); /* Darker code background */
+            color: var(--accent-green); /* Green code text */
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: var(--font-code);
+            font-size: 1em;
+            border: 1px solid var(--bg-light);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        #topic-explanation ul { list-style-type: '⚡ '; padding-left: 35px; } /* Custom lightning bolt bullet */
+
+        /* --- Resources Section --- */
+        .resources-section {
+            margin-top: 60px;
+            background-color: var(--bg-dark);
+            padding: 35px;
+            border-radius: 15px;
+            border: 2px solid var(--bg-light);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+        }
+        .resources-section h3 {
+            color: var(--accent-orange);
+            border-bottom: 1px dashed var(--bg-light);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 1.3rem;
+            text-shadow: 0 0 10px rgba(var(--accent-orange), 0.5);
+        }
+        #download-pdf-btn {
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+            color: var(--bg-dark);
+            border: none;
+            padding: 16px 35px; /* Even larger button */
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 35px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(var(--gradient-end), 0.4);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        #download-pdf-btn:hover {
+            background: linear-gradient(90deg, #00A9FF, #3B82F6); /* Reverse gradient or lighter */
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(var(--gradient-end), 0.8);
+        }
+        .resources-section h4 {
+            color: var(--accent-cyan);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        #resources-list { list-style: none; padding: 0; margin-top: 15px; }
+        #resources-list li {
+            margin-bottom: 12px;
+            padding-left: 25px;
+            position: relative;
+            font-size: 1.1em;
+        }
+        #resources-list li::before {
+            content: '🔗';
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-size: 1.1em;
+        }
+        #resources-list li a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            transition: color 0.3s, text-decoration 0.3s;
+        }
+        #resources-list li a:hover {
+            color: var(--accent-orange);
+            text-decoration: underline;
+        }
+
+        /* --- Practice Questions Section --- */
+        #topic-questions {
+            margin-top: 60px;
+            background-color: var(--bg-dark);
+            padding: 35px;
+            border-radius: 15px;
+            border: 2px solid var(--bg-light);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+        }
+        #topic-questions h3 {
+            color: var(--accent-green);
+            border-bottom: 1px dashed var(--bg-light);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 1.3rem;
+            text-shadow: 0 0 10px rgba(var(--accent-green), 0.5);
+        }
+        #topic-questions ol { padding-left: 35px; }
+        #topic-questions li { 
+            margin-bottom: 15px; 
+            color: var(--text-color); 
+            font-size: 1.1em; 
+            position: relative;
+            padding-left: 10px;
+        }
+        #topic-questions li::before {
+            content: '❓'; /* Question mark bullet */
+            position: absolute;
+            left: -20px; /* Adjust position */
+            color: var(--accent-purple);
+        }
+        #topic-questions li strong { color: var(--accent-orange); }
+
+
+        /* --- Runner (Code Editor & Output) --- */
+        .runner-panel { flex: 3; display: flex; flex-direction: column; border-left: none; }
+        .editor-container { flex: 1; min-height: 0; }
+        .output-container {
+            flex: 0 0 38%; /* Output takes even more space */
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            margin-top: 25px; /* More separation */
+            border-radius: 15px;
+            background-color: var(--bg-dark);
+            border: 2px solid var(--bg-light);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+            padding: 20px;
+        }
+        .output-container h4 {
+            color: var(--accent-purple);
+            margin: 0 0 15px 0;
+            border-bottom: 1px solid var(--bg-light);
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+            text-shadow: 0 0 8px rgba(var(--accent-purple), 0.4);
+        }
+        /* CodeMirror editor styling */
+        .CodeMirror {
+            height: 100%;
+            font-size: 1.1em; /* Larger code font */
+            border-radius: 12px;
+            border: 2px solid var(--bg-light);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+            font-family: var(--font-code);
+            line-height: 1.6;
+        }
+        #run-btn {
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+            color: var(--bg-dark);
+            border: none;
+            padding: 16px 35px;
+            font-size: 1.25em; /* Larger text */
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(var(--gradient-end), 0.5);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #run-btn:hover {
+            background: linear-gradient(90deg, var(--gradient-end), var(--gradient-start)); /* Reverse gradient on hover */
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(var(--gradient-end), 0.9);
+        }
+        #output-area {
+            background-color: var(--bg-dark); /* Darker output area */
+            color: var(--text-color);
+            padding: 20px;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            flex-grow: 1;
+            overflow-y: auto;
+            font-family: var(--font-code);
+            font-size: 1em;
+            border: 1px solid var(--bg-light);
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.7); /* Stronger inner shadow */
+        }
+        #output-area.error {
+            color: var(--accent-red); /* Red text for errors */
+            text-shadow: 0 0 5px rgba(var(--accent-red), 0.5); /* Error glow */
+        }
+
+
+        /* --- Media Queries for Responsiveness --- */
+        @media (max-width: 1200px) {
+            .main-container { flex-direction: column; height: auto; overflow-y: auto; }
+            .sidebar { flex: 0 0 auto; width: 100%; border-right: none; border-bottom: 2px solid var(--bg-light); }
+            .content-panel, .runner-panel { flex: 1; width: 100%; }
+            .runner-panel { border-left: none; border-top: 2px solid var(--bg-light); }
+            .editor-container { height: 400px; } /* Adjusted height for editor on smaller screens */
+            .output-container { flex: none; height: 250px; } /* Fixed height for output */
+        }
+        @media (max-width: 768px) {
+            .panel { padding: 15px; }
+            .main-container { padding: 5px; gap: 5px; }
+            .sidebar h3, #topic-title, .resources-section h3, #topic-questions h3, .output-container h4 { font-size: 1.2rem; }
+            #topic-title { font-size: 2.2rem; }
+            .sidebar li a, #topic-explanation p, #topic-explanation li, #download-pdf-btn, #run-btn { font-size: 1em; padding: 12px 15px; }
+            #download-pdf-btn, #run-btn { padding: 12px 25px; letter-spacing: 1px; }
+            .editor-container { height: 300px; }
+            .output-container { height: 180px; }
+            #topic-explanation ul, #topic-questions ol { padding-left: 25px; }
+            #topic-questions li::before { left: -15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-actions">
+      <a href="{{ url_for('home') }}" class="nav-btn">🏠 Back to Home</a>
+    </div>  
+    <div class="main-container">
+        <div class="sidebar panel">
+            <h3>Learn the Basics</h3>
+            <ul>
+                <li><a href="#" data-topic="hello-world">Hello, World!</a></li>
+                <li><a href="#" data-topic="variables">Variables and Types</a></li>
+                <li><a href="#" data-topic="lists">Lists</a></li>
+                <li><a href="#" data-topic="basic-operators">Basic Operators</a></li>
+                <li><a href="#" data-topic="string-formatting">String Formatting</a></li>
+                <li><a href="#" data-topic="string-operations">Basic String Operations</a></li>
+                <li><a href="#" data-topic="conditions">Conditions</a></li>
+                <li><a href="#" data-topic="loops">Loops</a></li>
+                <li><a href="#" data-topic="functions">Functions</a></li>
+                <li><a href="#" data-topic="classes-objects">Classes and Objects</a></li>
+                <li><a href="#" data-topic="dictionaries">Dictionaries</a></li>
+                <li><a href="#" data-topic="modules-packages">Modules and Packages</a></li>
+                <li><a href="#" data-topic="input-output">Input and Output</a></li>
+            </ul>
+            <h3>Advanced Tutorials</h3>
+            <ul>
+                <li><a href="#" data-topic="generators">Generators</a></li>
+                <li><a href="#" data-topic="list-comprehensions">List Comprehensions</a></li>
+                <li><a href="#" data-topic="lambda-functions">Lambda functions</a></li>
+                <li><a href="#" data-topic="args-kwargs">Multiple Function Arguments</a></li>
+                <li><a href="#" data-topic="regex">Regular Expressions</a></li>
+                <li><a href="#" data-topic="exception-handling">Exception Handling</a></li>
+                <li><a href="#" data-topic="sets">Sets</a></li>
+                <li><a href="#" data-topic="serialization">Serialization</a></li>
+                <li><a href="#" data-topic="partial-functions">Partial functions</a></li>
+                <li><a href="#" data-topic="introspection">Code Introspection</a></li>
+                <li><a href="#" data-topic="closures">Closures</a></li>
+                <li><a href="#" data-topic="decorators">Decorators</a></li>
+                <li><a href="#" data-topic="map-filter-reduce">Map, Filter, Reduce</a></li>
+                <li><a href="#" data-topic="parsing-csv">Parsing CSV Files</a></li>
+            </ul>
+        </div>
+
+        <div class="content-panel panel">
+            <h1 id="topic-title"></h1>
+            <div id="topic-explanation"></div>
+            <div class="resources-section">
+                <h3>📚 Materials & Resources</h3>
+                <button id="download-pdf-btn">Download Notes as PDF</button>
+                <h4>🔗 Further Reading</h4>
+                <ul id="resources-list"></ul>
+            </div>
+            <div id="topic-questions">
+                <h3>Practice Questions</h3>
+                <ol id="questions-list"></ol>
+            </div>
+        </div>
+
+        <div class="runner-panel panel">
+            <button id="run-btn">Run Code ►</button>
+            <div class="editor-container"><div id="code-editor"></div></div>
+            <div class="output-container">
+                <h4>Terminal Output</h4>
+                <pre id="output-area">Output yahan dikhega...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/python/python.min.js"></script>
+    
+    <script>
+        const { jsPDF } = window.jspdf;
+        let currentTopicId = 'hello-world';
+
+        // --- Tutorials Content Database ---
+        // (This object contains all the explanations, examples, questions, and resources)
+        const tutorials = {
+            'hello-world': {
+                title: 'Hello, World!',
+                explanation: `<p>Programming mein sabse pehla kadam "Hello, World!" program hota hai. Yeh ek tradition hai!</p><p>Python mein, screen par kuch bhi text print karne ke liye hum <code>print()</code> function ka use karte hain. Jo bhi text aapko dikhana hai, use aapko quotes (<code>'...'</code> ya <code>"..."</code>) ke andar likhna hota hai.</p>`,
+                exampleCode: 'print("Hello, Swadesh! Welcome to Python.")',
+                questions: ['Apna naam print karne ke liye ek program likhein.','Ek line mein "India" print karein aur agli line mein "is great" print karein.','Ek math calculation (jaise 5*3) ka result print karein.','Kya aap bina quotes ke text print kar sakte hain? Koshish karein aur error dekhein.','Ek hi print statement ka use karke apna naam aur sheher (city) print karein.'],
+                resources: [{ name: 'Official \`print()\` documentation', url: 'https://docs.python.org/3/library/functions.html#print' }, { name: 'Video: Python Print Function Explained', url: 'https://www.youtube.com/watch?v=R__2q_2-t4U' }]
+            },
+            'variables': {
+                title: 'Variables and Types',
+                explanation: `<p>Ek <strong>variable</strong> ek container jaisa hota hai jismein aap data store kar sakte hain. Soch lijiye yeh ek box hai jise aapne ek naam de diya hai, aur uske andar aap kuch bhi samaan (data) rakh sakte hain.</p><p>Common data types hain:</p><ul><li><strong>String (str):</strong> Text ke liye, jaise <code>"Hello"</code>.</li><li><strong>Integer (int):</strong> Poore numbers ke liye, jaise <code>10</code>.</li><li><strong>Float (float):</strong> Decimal waale numbers ke liye, jaise <code>19.99</code>.</li><li><strong>Boolean (bool):</b> Sirf <code>True</code> ya <code>False</code> ke liye.</li></ul>`,
+                exampleCode: '# Variables banana\nname = "Aisha"\nage = 22\nprice = 99.50\nis_student = True\n\n# Variables ko print karna\nprint("Student Name:", name)\nprint("Age:", age)\nprint("Course Price:", price)\nprint("Is Student?", is_student)',
+                questions: ['Apni age aur city ke liye do alag-alag variables banayein aur unhe print karein.','Ek variable `x` banayein jismein value 10 ho aur `y` banayein jismein value 20 ho. Dono ka sum (x+y) print karein.','Ek variable ki value ko kaise update karte hain? (e.g., age ko 22 se 23 karke print karein)','\`type()\` function ka use karke \`name\`, \`age\`, aur \`price\` variables ka data type print karein.','Kya ek variable ka naam number se shuru ho sakta hai? Try karke error dekhein.'],
+                resources: [{ name: 'Official Python Data Types Docs', url: 'https://docs.python.org/3/library/stdtypes.html' }, { name: 'Video: Variables for Beginners', url: 'https://www.youtube.com/watch?v=cQT33yu9pY8' }]
+            },
+            'lists': {
+                title: 'Lists',
+                explanation: `<p>Ek <strong>List</strong> ek train ke dibbe jaisi hai jismein aap ek saath kai saare items rakh sakte hain. Items alag-alag type ke bhi ho sakte hain. Lists ko square brackets <code>[]</code> se banaya jaata hai.</p><p>List ka har item ek specific position par hota hai, jise <strong>index</strong> kehte hain. Indexing 0 se shuru hoti hai.</p><p>Aap list mein naye items jod sakte hain (<code>.append()</code>) aur purane hata sakte hain (<code>.remove()</code>).</p>`,
+                exampleCode: '# Fruits ki ek list\nfruits = ["Apple", "Banana", "Cherry"]\nprint("Poori list:", fruits)\n\n# Pehla fruit access karna (index 0)\nprint("Pehla fruit:", fruits[0])\n\n# Naya fruit add karna\nfruits.append("Orange")\nprint("Nayi list:", fruits)\n\n# Ek fruit hatana\nfruits.remove("Banana")\nprint("Final list:", fruits)',
+                questions: ['5 numbers ki ek list banayein aur use print karein.','Uss list ka teesra element (item) print karein.','Uss list ke aakhir mein ek naya number 100 add karein.','List ka pehla element badal kar 99 kar dein.','List mein kitne items hain? \`len()\` function ka use karke pata karein.'],
+                resources: [{ name: 'More on Python Lists', url: 'https://docs.python.org/3/tutorial/datastructures.html' }, { name: 'Video: Python Lists Tutorial', url: 'https://www.youtube.com/watch?v=ohCDdksD_6Q' }]
+            },
+            'basic-operators': {
+                title: 'Basic Operators',
+                explanation: `<p>Operators special symbols hote hain jo calculations (computation) karne ke kaam aate hain.</p><ul><li><code>+</code> (Addition), <code>-</code> (Subtraction), <code>*</code> (Multiplication), <code>/</code> (Division)</li><li><code>%</code> (Modulus): Bhaag dene ke baad bacha hua remainder deta hai.</li><li><code>**</code> (Exponent): Power nikalne ke liye (e.g., 2**3 = 8).</li></ul>`,
+                exampleCode: 'a = 10\nb = 3\n\nprint("Addition (a + b):", a + b)\nprint("Subtraction (a - b):", a - b)\nprint("Multiplication (a * b):", a * b)\nprint("Division (a / b):", a / b)\nprint("Modulus (a % b):", a % b)\nprint("Exponent (a ** b):", a ** b)',
+                questions: ['Do numbers 25 aur 5 par saare basic operators laga kar result print karein.','Ek saal mein kitne seconds hote hain? Variables ka use karke calculate karein.','Agar 100 ko 7 se divide karein to remainder kya aayega?','Ek variable \`radius\` banayein aur usmein value 5 dein. Circle ka area (πr²) calculate karein (π ki value 3.14 lein).','5 ka cube (5³) kya hota hai? Operator ka use karke find karein.'],
+                resources: [{ name: 'Official Docs on Numeric Types', url: 'https://docs.python.org/3/library/stdtypes.html#numeric-types-int-float-complex' }]
+            },
+            'string-formatting': {
+                title: 'String Formatting',
+                explanation: `<p><strong>String Formatting</strong> ka matlab hai strings ke andar variables ki value ko dynamically daalna. Iska sabse aasan aur modern tareeka hai <strong>f-strings</strong>.</p><p>Aapko bas string ke shuruaat mein <code>f</code> lagana hota hai, aur jahan bhi variable ki value daalni ho, wahan use curly braces <code>{}</code> ke andar likh dein.</p>`,
+                exampleCode: 'name = "Rohan"\nage = 25\nprofession = "Developer"\n\n# f-string ka use\nsentence = f"Mera naam {name} hai. Main {age} saal ka hoon aur ek {profession} hoon."\nprint(sentence)',
+                questions: ['Ek \`item\` variable banayein ("Laptop") aur ek \`price\` variable (50000). f-string ka use karke "The price of Laptop is 50000." print karein.','Do number variables \`a\` aur \`b\` banayein. f-string ka use karke "The sum of a and b is [result]." print karein.','User se uska naam input lein aur f-string se "Welcome, [user\'s name]!" print karein.','Ek float number \`pi = 3.14159\` hai. f-string ka use karke use sirf 2 decimal places tak kaise print karenge? (Hint: \`{pi:.2f}\`)','Apne 3 dosto ke naam variables mein store karein aur f-string ka use karke ek hi sentence mein unhe print karein.'],
+                resources: [{ name: 'f-strings in Python', url: 'https://realpython.com/python-f-strings/' }]
+            },
+            'string-operations': {
+                title: 'Basic String Operations',
+                explanation: `<p>Strings ke saath aap kai operations kar sakte hain.</p><ul><li><strong>Concatenation (+):</strong> Do strings ko jodna.</li><li><strong>Repetition (*):</strong> Ek string ko kai baar repeat karna.</li><li><strong>Slicing:</strong> String ka ek hissa nikalna. <code>string[start:end]</code></li><li><strong>Methods:</strong> Functions jo string ke saath kaam karte hain, jaise <code>.upper()</code> (sabko capital karna), <code>.lower()</code> (sabko small karna), aur <code>len()</code> (length batana).</li></ul>`,
+                exampleCode: 's1 = "hello"\ns2 = "world"\n\n# Concatenation\nprint("Jodna:", s1 + " " + s2)\n\n# Repetition\nprint("Repeat karna:", s1 * 3)\n\n# Slicing\nprint("Pehle 3 characters:", (s1 + s2)[0:3])\n\n# Methods\nprint("Uppercase:", s1.upper())\nprint("Length:", len(s2))',
+                questions: ['Do strings "I love" aur "Python" ko jod kar print karein.','String "Ha" ko 5 baar print karein.','String "Programming" ka pehla character aur aakhri character print karein.','Apna naam small letters mein likhein aur use \`.upper()\` method se capital karke print karein.','String "Supercalifragilisticexpialidocious" ki length kya hai?'],
+                resources: [{ name: 'Official Docs on String Methods', url: 'https://docs.python.org/3/library/stdtypes.html#string-methods' }]
+            },
+            'conditions': {
+                title: 'Conditions (if-elif-else)',
+                explanation: `<p>Conditions se aap code ko decision lene ki power dete hain. Agar koi shart (condition) poori hoti hai, to ek block of code chalta hai, warna doosra.</p><ul><li><strong>if:</strong> Yeh tab chalta hai jab condition <code>True</code> hoti hai.</li><li><strong>elif:</strong> "else if" ka short form. Agar pehla <code>if</code> galat hota hai to iski condition check hoti hai.</li><li><strong>else:</strong> Jab upar ki koi bhi condition <code>True</code> nahi hoti, tab yeh chalta hai.</li></ul>`,
+                exampleCode: 'age = 19\n\nif age < 13:\n    print("Aap ek bachhe ho.")\nelif age < 18:\n    print("Aap ek teenager ho.")\nelse:\n    print("Aap ek adult ho.")',
+                questions: ['Ek number lein aur check karein ki woh positive hai ya negative.','User se uski age poochein aur batayein ki woh vote de sakta hai ya nahi (voting age 18 hai).','Ek program likhein jo check kare ki ek number even (sam) hai ya odd (visham). (Hint: Modulus operator \`%\` ka use karein)','Ek \`score\` variable banayein. Agar score 90 se zyada hai to "Grade A", 70-90 ke beech hai to "Grade B", aur usse kam hai to "Grade C" print karein.','Do numbers mein se bada number kaunsa hai, yeh pata karne ka program likhein.'],
+                resources: [{ name: 'Official Docs on if statements', url: 'https://docs.python.org/3/tutorial/controlflow.html#if-statements' }]
+            },
+            'loops': {
+                title: 'Loops (for and while)',
+                explanation: `<p>Loops ka use code ko baar-baar repeat karne ke liye hota hai.</p><p><strong>for loop:</strong> Yeh kisi sequence (jaise list ya string) ke har item ke upar ek-ek karke jaata hai. <code>range()</code> function ke saath yeh numbers ki series par loop karne ke liye bahut useful hai.</p><p><strong>while loop:</b> Yeh tab tak chalta rehta hai jab tak uski condition <code>True</code> rehti hai. Ismein condition ko galat karna zaroori hai, warna loop hamesha chalta rahega (infinite loop).</p>`,
+                exampleCode: '# for loop: 1 se 5 tak print karna\nprint("For loop:")\nfor i in range(1, 6):\n    print(i)\n\n# while loop: 1 se 5 tak print karna\nprint("\\nWhile loop:")\ncount = 1\nwhile count <= 5:\n    print(count)\n    count = count + 1',
+                questions: ['for loop ka use karke 10 se 1 tak ulte numbers print karein.','Ek list banayein jismein 5 fruits ke naam hon aur for loop se har fruit ko print karein.','while loop ka use karke 2 ka table (2, 4, 6...20) print karein.','1 se 10 tak ke sabhi numbers ka sum (total jod) calculate karein.','Ek program banayein jo user se tab tak password poochta rahe jab tak woh sahi password ("python123") na daal de.'],
+                resources: [{ name: 'Official Docs on for statements', url: 'https://docs.python.org/3/tutorial/controlflow.html#for-statements' }]
+            },
+            'functions': {
+                title: 'Functions',
+                explanation: `<p>Ek <strong>Function</strong> code ka ek reusable block hota hai jise aap ek naam de dete hain. Jab bhi aapko woh kaam karna ho, aap bas uss function ko uske naam se "call" kar lete hain.</p><p>Functions <code>def</code> keyword se banaye jaate hain. Woh input le sakte hain (jinhe <strong>parameters</strong> kehte hain) aur output de sakte hain (<code>return</code> keyword se).</p>`,
+                exampleCode: '# Ek function jo do numbers ko jodta hai\ndef add_numbers(num1, num2):\n    sum_val = num1 + num2\n    return sum_val\n\n# Function ko call karna\nresult = add_numbers(5, 7)\nprint("The sum is:", result)\n\nresult2 = add_numbers(100, 50)\nprint("The second sum is:", result2)',
+                questions: ['Ek function banayein `greet(name)` jo input mein ek naam le aur "Hello, [name]!" print kare.','Ek function `calculate_square(number)` banayein jo ek number ka square return kare.','Ek function banayein jo ek list of numbers le aur unka total sum return kare.','Ek function `find_max(a, b)` banayein jo do numbers mein se bada number return kare.','Ek function `is_even(number)` banayein jo `True` return kare agar number even hai, aur `False` return kare agar odd hai.'],
+                resources: [{ name: 'Official Docs on Defining Functions', url: 'https://docs.python.org/3/tutorial/controlflow.html#defining-functions' }]
+            },
+            'classes-objects': {
+                title: 'Classes and Objects',
+                explanation: `<p><strong>Class</strong> ek blueprint (design) jaisa hota hai. Jaise ek car ka design. <strong>Object</strong> uss blueprint se bani hui asli cheez hoti hai, jaise ek asli car.</p><p>Class mein do cheezein hoti hain: <strong>attributes</strong> (properties, jaise car ka color) aur <strong>methods</strong> (actions, jaise car ka start hona).</p><p><code>__init__()</code> ek special method hai jo tab chalta hai jab object banaya jaata hai. Yeh object ki initial properties set karne ke kaam aata hai.</p>`,
+                exampleCode: 'class Dog:\n    # Yeh method object banate waqt chalta hai\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\n    # Yeh ek action method hai\n    def bark(self):\n        return f"{self.name} says Woof!"\n\n# Class se object banana\nmy_dog = Dog("Buddy", 3)\n\n# Object ke attributes aur methods use karna\nprint(f"Dog\'s name: {my_dog.name}")\nprint(f"Dog\'s age: {my_dog.age}")\nprint(my_dog.bark())',
+                questions: ['Ek `Student` class banayein jiske attributes `name` aur `roll_no` hon.','Uss `Student` class ka ek object banayein aur uske details print karein.','`Student` class mein ek method `show_details()` add karein jo student ka naam aur roll number print kare.','Ek `Car` class banayein jiske attributes `brand` aur `model` hon.','`Car` class mein ek method `start_engine()` banayein jo "Vroom Vroom!" print kare.'],
+                resources: [{ name: 'Official Docs on Classes', url: 'https://docs.python.org/3/tutorial/classes.html' }]
+            },
+            'dictionaries': {
+                title: 'Dictionaries',
+                explanation: `<p>Ek <strong>Dictionary</strong> ek special collection hai jismein data <code>key: value</code> pairs mein store hota hai. Yeh ek asli dictionary jaisi hai jahan har "word" (key) ka ek "meaning" (value) hota hai.</p><p>Dictionaries curly braces <code>{}</code> se banayi jaati hain. Keys hamesha unique hoti hain. Aap value ko uski key se access karte hain, index se nahi.</p>`,
+                exampleCode: '# Ek student ki details dictionary mein\nstudent = {\n    "name": "Priya",\n    "age": 21,\n    "city": "Mumbai",\n    "is_enrolled": True\n}\n\n# Value ko key se access karna\nprint("Student\'s Name:", student["name"])\n\n# Nayi key-value pair add karna\nstudent["grade"] = "A"\nprint("Updated Dictionary:", student)',
+                questions: ['Apne baare mein ek dictionary banayein jismein `name`, `age`, `city` keys hon.','Uss dictionary se apna sheher (city) print karein.','Apni dictionary mein ek nayi key `hobby` add karein aur uski value daalein.','Dictionary mein `age` ki value ko update karein.','Dictionary ki saari keys ko kaise print karenge? (Hint: `.keys()` method)'],
+                resources: [{ name: 'Official Docs on Dictionaries', url: 'https://docs.python.org/3/tutorial/datastructures.html#dictionaries' }]
+            },
+            'modules-packages': {
+                title: 'Modules and Packages',
+                explanation: `<p>Ek <strong>Module</strong> ek Python file (.py) hoti hai jismein functions aur variables hote hain. Ek <strong>Package</strong> modules ka ek folder (collection) hota hai.</p><p>Yeh code ko organize karne aur reuse karne ka tareeka hai. Python mein kai built-in modules hain, jaise <code>math</code> (math operations ke liye) aur <code>random</code> (random numbers ke liye).</p><p>Hum <code>import</code> keyword ka use karke kisi bhi module ko apni file mein use kar sakte hain.</p>`,
+                exampleCode: '# Math module ko import karna\nimport math\n\nprint("Value of Pi:", math.pi)\nprint("Square root of 16:", math.sqrt(16))\n\n# Random module se ek random number generate karna\nimport random\n\nrandom_number = random.randint(1, 100) # 1 se 100 ke beech\nprint("A random number:", random_number)',
+                questions: ['`math` module ka use karke 9 ka square root find karein.','`random` module ka use karke 1 se 6 ke beech ek random number generate karein (jaise dice roll).','Aaj ki current date aur time kaise print karenge? (Hint: `datetime` module import karein)','`math` module se sirf `pi` constant ko kaise import karenge? (Hint: `from math import pi`)','Ek module `my_calculator.py` banayein jismein `add(a, b)` function ho. Phir use doosri file mein import karke use karein. (Conceptual question)'],
+                resources: [{ name: 'Official Docs on Modules', url: 'https://docs.python.org/3/tutorial/modules.html' }]
+            },
+            'input-output': {
+                title: 'Input and Output',
+                explanation: `<p>Programs ko interactive banane ke liye humein user se input lena aur use output dikhana padta hai.</p><ul><li><strong>Output:</strong> Iske liye hum <code>print()</code> function ka use karte hain, jo hum pehle hi dekh chuke hain.</li><li><strong>Input:</strong> User se input lene ke liye hum <code>input()</code> function ka use karte hain. Yeh function user ke type karne ka wait karta hai aur jaise hi user Enter dabata hai, yeh uss text ko as a <strong>string</strong> return karta hai.</li></ul><p>Agar aapko number input lena hai, to aapko use <code>int()</code> ya <code>float()</code> se convert karna padega.</p>`,
+                exampleCode: '# User se naam poochna\nname = input("Aapka naam kya hai? ")\nprint(f"Hello, {name}!")\n\n# User se age (number) poochna\nage_str = input("Aapki age kya hai? ")\nage_num = int(age_str) # String ko integer mein convert karna\n\nprint(f"Aap agle saal {age_num + 1} saal ke ho jaoge.")',
+                questions: ['User se uske sheher (city) ka naam poochein aur use print karein.','User se do numbers input lein, unhe jodein (sum karein), aur result print karein.','Ek rectangle ki length aur width user se input lein aur uska area calculate karke print karein.','User se uska favorite color poochein aur "Your favorite color is [color]." print karein.','Kya hota hai agar aap `int()` ke andar ek text (jaise "hello") daal dein? Try karke error dekhein.'],
+                resources: [{ name: 'Official Docs on Input and Output', url: 'https://docs.python.org/3/tutorial/inputoutput.html' }]
+            },
+            'generators': {
+                title: 'Generators',
+                explanation: `<p><strong>Generators</strong> ek special tarah ke functions hote hain jo ek-ek karke values "yield" (paida) karte hain, bajaye ek saath poori list return karne ke.</p><p>Yeh memory bachane ke liye bahut useful hain, khaaskar jab aapko bahut badi data series par kaam karna ho. Yeh <code>yield</code> keyword ka use karte hain <code>return</code> ki jagah.</p>`,
+                exampleCode: '# Ek generator function jo numbers generate karta hai\ndef count_up_to(max):\n    count = 1\n    while count <= max:\n        yield count # Value ko return karne ke bajaye yield karein\n        count += 1\n\n# Generator ko use karna\ncounter = count_up_to(5)\n\nfor number in counter:\n    print(number)',
+                questions: ['Ek generator banayein jo even numbers (2, 4, 6...) generate kare.','`yield` aur `return` mein kya farak hai?','Lakhon numbers ki series ke liye list ke upar generator use karne ka kya fayda hai?','Ek generator banayein jo ek list ke items ko reverse order mein yield kare.','Fibonacci series ke liye ek generator function likhein.'],
+                resources: [{ name: 'Real Python on Generators', url: 'https://realpython.com/introduction-to-python-generators/' }]
+            },
+            'list-comprehensions': {
+                title: 'List Comprehensions',
+                explanation: `<p><strong>List Comprehensions</strong> ek list se doosri list banane ka ek bahut hi chota aur elegant tareeka hai. Yeh ek for loop, if condition, aur item ko ek hi line mein combine kar deta hai.</p><p>Yeh code ko padhne mein aasan aur likhne mein tez banata hai.</p>`,
+                exampleCode: '# Normal for loop se square nikalna\nnumbers = [1, 2, 3, 4, 5]\nsquares = []\nfor n in numbers:\n    squares.append(n*n)\nprint("Normal loop:", squares)\n\n# List comprehension se square nikalna\nsquares_comp = [n*n for n in numbers]\nprint("Comprehension:", squares_comp)\n\n# Sirf even numbers ka square nikalna\neven_squares = [n*n for n in numbers if n % 2 == 0]\nprint("Even squares:", even_squares)',
+                questions: ['List comprehension ka use karke 1 se 10 tak ke numbers ki ek list banayein.','Ek list of strings hai. Uss list se har string ki length ki ek nayi list banayein.','Ek list of numbers hai. Sirf positive numbers ki ek nayi list banayein.','Ek list of names hai. Saare names ko uppercase karke ek nayi list banayein.','1 se 20 tak ke numbers mein se sirf 3 se divisible hone waale numbers ki list banayein.'],
+                resources: [{ name: 'Official Docs on List Comprehensions', url: 'https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions' }]
+            },
+            'lambda-functions': {
+                title: 'Lambda Functions',
+                explanation: `<p>Ek <strong>Lambda function</strong> ek choti, anonymous (bina naam ki) function hoti hai. Ise <code>lambda</code> keyword se define kiya jaata hai.</p><p>Yeh tab useful hoti hai jab aapko thode samay ke liye ek chote se function ki zaroorat ho, jaise \`map\` ya \`filter\` ke saath.</p><p>Syntax: <code>lambda arguments: expression</code></p>`,
+                exampleCode: '# Ek number mein 10 jodna\nadd_ten_lambda = lambda x: x + 10\nprint("Lambda function:", add_ten_lambda(5))\n\n# Do numbers ko multiply karna\nmultiply_lambda = lambda x, y: x * y\nprint("Multiply with lambda:", multiply_lambda(4, 5))',
+                questions: ['Ek lambda function banayein jo do numbers ko multiply kare.','Ek lambda function banayein jo ek number ka double return kare.','Ek list ko uske har number ke square ke hisaab se sort karne ke liye lambda function ka use kaise karenge?','Ek lambda function banayein jo check kare ki ek string "a" se shuru hoti hai ya nahi.','Lambda functions mein \`if-else\` ka use kaise karte hain?'],
+                resources: [{ name: 'Real Python on Lambda Functions', url: 'https://realpython.com/python-lambda/' }]
+            },
+            'args-kwargs': {
+                title: 'Multiple Function Arguments (*args, **kwargs)',
+                explanation: `<p>Kabhi kabhi humein aise functions banane padte hain jo kitne bhi arguments le sakein. Iske liye Python humein <code>*args</code> aur <code>**kwargs</code> deta hai.</p><ul><li><strong>*args (Non-Keyword Arguments):</strong> Yeh function mein diye gaye saare extra positional arguments ko ek <strong>tuple</strong> mein pack kar deta hai.</li><li><strong>**kwargs (Keyword Arguments):</strong> Yeh saare extra keyword arguments ko ek <strong>dictionary</strong> mein pack kar deta hai.</li></ul>`,
+                exampleCode: 'def my_function(*args, **kwargs):\n    print("Args (tuple):", args)\n    print("Kwargs (dictionary):", kwargs)\n\nmy_function(1, 2, "hello", name="John", age=30)',
+                questions: ['Ek function `add_all(*nums)` banayein jo kitne bhi numbers ko jod kar unka sum return kare.','\`*args\` aur \`**kwargs\` mein \`*\` aur \`**\` ka kya matlab hai?','Ek function `print_details(**details)` banayein jo user ki details (jaise name, city) le aur unhe print kare.','Kya `*args` ko `*numbers` ya `**kwargs` ko `**data` likh sakte hain?','Ek function call mein `*args` aur `**kwargs` ka order kya hona chahiye?'],
+                resources: [{ name: 'Real Python on *args and **kwargs', url: 'https://realpython.com/python-args-kwargs/' }]
+            },
+            'regex': {
+                title: 'Regular Expressions',
+                explanation: `<p><strong>Regular Expressions</strong> ya "RegEx" text mein patterns ko search, match, aur manipulate karne ka ek bahut powerful tareeka hai. Yeh ek mini-language jaisa hai.</p><p>Python mein, hum iske liye <code>re</code> module ka use karte hain. Isse aap email validation, data extraction jaise complex kaam aasani se kar sakte hain.</p>`,
+                exampleCode: 'import re\n\ntext = "My email is example@domain.com and phone is 123-456-7890"\n\n# Email dhundhna\nemail_pattern = r"\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b"\nmatch = re.search(email_pattern, text)\n\nif match:\n    print("Email found:", match.group())',
+                questions: ['Ek string mein se saare numbers kaise nikalenge?','\`re.search()\` aur \`re.findall()\` mein kya antar hai?','Ek regular expression likhein jo check kare ki ek string mein sirf letters (alphabets) hain.','Ek string "color" aur "colour" dono ko match karne ke liye RegEx kaise likhenge?','RegEx mein `.` (dot) character ka kya matlab hota hai?'],
+                resources: [{ name: 'Official Docs on \`re\` module', url: 'https://docs.python.org/3/library/re.html' }]
+            },
+            'exception-handling': {
+                title: 'Exception Handling (try-except)',
+                explanation: `<p>Jab code mein koi error aata hai, to program crash ho jaata hai. <strong>Exception Handling</strong> se hum in errors ko gracefully "catch" kar sakte hain aur program ko crash hone se bacha sakte hain.</p><ul><li><strong>try:</strong> Is block mein woh code rakha jaata hai jismein error aa sakta hai.</li><li><strong>except:</strong> Agar \`try\` block mein error aata hai, to \`except\` block ka code chalta hai.</li><li><strong>finally:</strong> Yeh block hamesha chalta hai, chahe error aaye ya na aaye.</li></ul>`,
+                exampleCode: 'try:\n    numerator = 10\n    denominator = 0\n    result = numerator / denominator\n    print(result)\nexcept ZeroDivisionError:\n    print("Error: Aap zero se divide nahi kar sakte!")\nfinally:\n    print("Execution complete.")',
+                questions: ['Agar file exist nahi karti to \`open()\` function kaunsa error deta hai? Uske liye \`try-except\` block likhein.','Ek list se ek non-existent index (jaise \`my_list[10]\`) access karne par kaunsa error aata hai?','\`try-except\` ka use karke ek program banayein jo user se number input le, aur agar user text daal de to error message dikhaye.','Ek hi \`try\` block ke liye multiple \`except\` blocks ho sakte hain?','\`else\` block \`try-except\` mein kab use hota hai?'],
+                resources: [{ name: 'Official Docs on Errors and Exceptions', url: 'https://docs.python.org/3/tutorial/errors.html' }]
+            },
+            'sets': {
+                title: 'Sets',
+                explanation: `<p>Ek <strong>Set</strong> ek unordered collection hota hai jismein sirf <strong>unique</strong> items hote hain. Ismein koi duplicate item nahi ho sakta.</p><p>Sets ko curly braces <code>{}</code> se banaya jaata hai. Yeh membership testing (koi item set mein hai ya nahi) ke liye bahut fast hote hain. Inpar aap union, intersection jaise operations bhi kar sakte hain.</p>`,
+                exampleCode: 'my_list = [1, 2, 2, 3, 4, 4, 4]\n\n# List se set banana (duplicates hat jaenge)\nmy_set = set(my_list)\nprint("Set from list:", my_set)\n\n# Set operations\nset1 = {1, 2, 3}\nset2 = {3, 4, 5}\n\nprint("Union:", set1.union(set2))\nprint("Intersection:", set1.intersection(set2))',
+                questions: ['Ek list se saare duplicate items hatane ka sabse aasan tareeka kya hai?','Do sets mein common items kaise find karenge?','Ek set mein naya item kaise add karte hain?','Set aur List mein kya main differences hain?','Ek empty dictionary aur empty set banane ke syntax mein kya fark hai?'],
+                resources: [{ name: 'Official Docs on Sets', url: 'https://docs.python.org/3/tutorial/datastructures.html#sets' }]
+            },
+            'serialization': {
+                title: 'Serialization (Pickling)',
+                explanation: `<p><strong>Serialization</strong> ka matlab hai Python ke objects (jaise list, dictionary) ko ek aise format mein convert karna jise file mein store kiya ja sake ya network par bheja ja sake. Python mein is process ko <strong>Pickling</strong> kehte hain.</p><p>Hum iske liye <code>pickle</code> module ka use karte hain. <code>pickle.dump()</code> object ko file mein save karta hai aur <code>pickle.load()</code> use wapas object banata hai.</p>`,
+                exampleCode: 'import pickle\n\ndata = {"name": "Test", "items": [1, 2, 3], "is_pickle": True}\n\n# Serialize (write to file)\nwith open("data.pkl", "wb") as file:\n    pickle.dump(data, file)\n\n# Deserialize (read from file)\nwith open("data.pkl", "rb") as file:\n    loaded_data = pickle.load(file)\n\nprint("Loaded data:", loaded_data)',
+                questions: ['Serialization ka asli use kya hai?','\`pickle\` module ke do main functions kaunse hain?','File open karte waqt \`wb\` aur \`rb\` ka kya matlab hai?','JSON serialization aur Pickle serialization mein kya antar hai?','Aap ek custom class ke object ko kaise serialize karenge?'],
+                resources: [{ name: 'Official Docs on \`pickle\` module', url: 'https://docs.python.org/3/library/pickle.html' }]
+            },
+             'partial-functions': {
+                title: 'Partial Functions',
+                explanation: `<p><strong>Partial Functions</strong> aapko ek maujooda function se naye function banane ki anumati dete hain, jismein kuch arguments pehle se hi fix (ya "frozen") kar diye jaate hain.</p><p>Yeh <code>functools</code> module ka hissa hai. Yeh code ko saaf aur reusable banane mein madad karta hai jab aapko ek hi function ko baar-baar same kuch arguments ke saath call karna ho.</p>`,
+                exampleCode: 'from functools import partial\n\ndef multiply(x, y):\n    return x * y\n\n# Ek naya function \`double\` banate hain jo hamesha 2 se multiply karega\ndouble = partial(multiply, 2)\n\n# Ab \`double\` function ko sirf ek argument chahiye\nprint("Result of double(5):", double(5)) # Output: 10',
+                questions: ['Partial function ka main fayda kya hai?', '\`functools\` module se \`partial\` ko kaise import karte hain?','Ek \`power(base, exponent)\` function hai. Isse ek naya \`square\` function banayein jismein exponent hamesha 2 ho.','Ek \`greet(name, greeting)\` function hai. Isse ek naya \`say_hello\` function banayein jismein greeting hamesha "Hello" ho.','Aap ek partial function mein keyword arguments ko kaise fix kar sakte hain?'],
+                resources: [{ name: 'Official Docs on \`functools.partial\`', url: 'https://docs.python.org/3/library/functools.html#functools.partial' }]
+            },
+            'introspection': {
+                title: 'Code Introspection',
+                explanation: `<p><strong>Introspection</strong> ka matlab hai code ki ability ki woh chalte samay (at runtime) objects ke type aur properties ke baare mein jaankari nikal sake. Yeh debugging aur dynamic code banane mein bahut madad karta hai.</p><p>Kuch common introspection functions hain: <code>type()</code>, <code>dir()</code>, <code>hasattr()</code>, <code>isinstance()</code>.</p>`,
+                exampleCode: 'my_list = [1, 2, 3]\n\n# Object ka type pata karna\nprint("Type of my_list:", type(my_list))\n\n# Object ke saare available attributes/methods dekhna\nprint("Attributes of my_list:", dir(my_list))\n\n# Check karna ki object kisi class ka instance hai ya nahi\nprint("Is it a list?", isinstance(my_list, list))',
+                questions: ['Introspection ka kya matlab hai?', '\`__name__\` attribute kya batata hai?','\`dir()\` function ka kya use hai?','\`isinstance()\` function kaise kaam karta hai?','Ek object ke saare attributes ko kaise dekh sakte hain?'],
+                resources: [{ name: 'Real Python on Introspection', url: 'https://realpython.com/python-type-checking/' }]
+            },
+            'closures': {
+                title: 'Closures',
+                explanation: `<p>Ek <strong>Closure</strong> ek function hota hai jo apne outer function ke variables ko yaad rakhta hai, even jab outer function execute ho chuka ho. Yeh functional programming mein kaafi useful hai.</p>`,
+                exampleCode: 'def outer(x):\n    def inner(y):\n        return x + y\n    return inner\n\nclosure_func = outer(10)\nprint(closure_func(5)) # Output: 15',
+                questions: ['Closure kya hota hai?', 'Ek function likhein jo outer function ke variable ko add kare aur inner function return kare.', 'Closures ka use memory efficiency ke liye kaise hota hai?', 'Ek counter function banayein jo closure ka use kare.', 'Multiple closures ka example likhein.'],
+                resources: [{ name: 'Python Closures Explained', url: 'https://realpython.com/inner-functions-what-are-they-good-for/' }]
+            },
+            'decorators': {
+                title: 'Decorators',
+                explanation: `<p>Ek <strong>Decorator</strong> ek function ko modify karne ka ek tarika hai bina uske code ko change kiye. Yeh functions ke behavior ko dynamically enhance karte hain.</p>`,
+                exampleCode: 'def decorator(func):\n    def wrapper():\n        print("Before function call")\n        func()\n        print("After function call")\n    return wrapper\n\n@decorator\ndef say_hello():\n    print("Hello!")\n\nsay_hello()',
+                questions: ['Decorator kya hai?', 'Ek simple decorator banayein jo function call ko print kare.', 'Multiple decorators ek function pe kaise apply karte hain?', 'Decorator ka use logging ke liye kaise hota hai?', 'Ek timer decorator banayein jo function execution time print kare.'],
+                resources: [{ name: 'Real Python on Decorators', url: 'https://realpython.com/primer-on-python-decorators/' }]
+            },
+            'map-filter-reduce': {
+                title: 'Map, Filter, Reduce',
+                explanation: `<p>Ye functions functional programming ka hissa hain:</p>\n<ul>\n    <li><strong>map():</strong> List ke har item par function apply karta hai.</li>\n    <li><strong>filter():</strong> List ke items ko condition ke basis pe filter karta hai.</li>\n    <li><strong>reduce():</b> List ke items ko combine karta hai ek single value mein (from functools import reduce).</li>\n</ul>`,
+                exampleCode: 'from functools import reduce\n\nnums = [1, 2, 3, 4, 5]\n\n# map example\nsquared = list(map(lambda x: x**2, nums))\nprint(squared)\n\n# filter example\neven = list(filter(lambda x: x%2==0, nums))\nprint(even)\n\n# reduce example\ntotal = reduce(lambda x,y: x+y, nums)\nprint(total)',
+                questions: ['Map ka use karke ek list ke numbers ka square nikalain.', 'Filter ka use karke sirf even numbers print karein.', 'Reduce ka use karke ek list ke sum nikalain.', 'Map aur filter ko combine karke ek program likhein.', 'Lambda functions ke saath map/filter/reduce kaise use karte hain?'],
+                resources: [{ name: 'Official Docs on Functional Programming', url: 'https://docs.python.org/3/howto/functional.html' }]
+            },
+            'parsing-csv': {
+                title: 'Parsing CSV Files',
+                explanation: `<p>CSV (Comma-Separated Values) files ka use data ko store aur exchange karne ke liye hota hai. Python mein <code>csv</code> module ka use karke aap CSV files ko read aur write kar sakte hain.</p>`,
+                exampleCode: 'import csv\n\n# CSV read example\nwith open("data.csv", newline="") as csvfile:\n    reader = csv.reader(csvfile)\n    for row in reader:\n        print(row)\n\n# CSV write example\nwith open("output.csv", "w", newline="") as csvfile:\n    writer = csv.writer(csvfile)\n    writer.writerow(["Name", "Age"])\n    writer.writerow(["Alice", 25])',
+                questions: ['CSV file kaise read karte hain?', 'CSV file mein data kaise write karte hain?', 'CSV reader aur writer mein kya difference hai?', 'CSV file se specific column kaise extract karte hain?', 'Multiple rows CSV file mein kaise add karte hain?'],
+                resources: [{ name: 'Official Docs on CSV Module', url: 'https://docs.python.org/3/library/csv.html' }]
+            }
+        };
+
+        const topicTitleEl = document.getElementById('topic-title');
+        const topicExplanationEl = document.getElementById('topic-explanation');
+        const questionsListEl = document.getElementById('questions-list');
+        const resourcesListEl = document.getElementById('resources-list');
+        const sidebarLinks = document.querySelectorAll('.sidebar a');
+        
+        const editor = CodeMirror(document.getElementById('code-editor'), { mode: 'python', theme: 'dracula', lineNumbers: true });
+
+        function loadTopic(topicId) {
+            currentTopicId = topicId;
+            const topic = tutorials[topicId];
+            if (!topic) {
+                topicTitleEl.textContent = "Topic Not Found";
+                topicExplanationEl.innerHTML = "<p>Please select a topic from the sidebar.</p>";
+                editor.setValue("# Select a topic to see example code.");
+                questionsListEl.innerHTML = "";
+                resourcesListEl.innerHTML = "";
+                return;
+            }
+
+            topicTitleEl.textContent = topic.title;
+            topicExplanationEl.innerHTML = topic.explanation;
+            editor.setValue(topic.exampleCode);
+
+            questionsListEl.innerHTML = '';
+            (topic.questions || []).forEach(q => {
+                const li = document.createElement('li');
+                li.textContent = q;
+                questionsListEl.appendChild(li);
+            });
+            
+            resourcesListEl.innerHTML = '';
+            if (topic.resources && topic.resources.length > 0) {
+                topic.resources.forEach(res => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="${res.url}" target="_blank">${res.name}</a>`;
+                    resourcesListEl.appendChild(li);
+                });
+            }
+
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.topic === topicId) link.classList.add('active');
+            });
+        }
+        
+        document.getElementById('download-pdf-btn').addEventListener('click', () => {
+            const topic = tutorials[currentTopicId];
+            if (!topic) return;
+            const doc = new jsPDF();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = topic.explanation;
+            const cleanText = tempDiv.textContent || tempDiv.innerText || "";
+            doc.setFontSize(22);
+            doc.text(topic.title, 10, 20);
+            doc.setFontSize(12);
+            const splitText = doc.splitTextToSize(cleanText, 180);
+            doc.text(splitText, 10, 30);
+            doc.save(`${topic.title.replace(/\s+/g, '_').toLowerCase()}.pdf`);
+        });
+
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const topicId = e.target.closest('a').dataset.topic;
+                if(topicId) loadTopic(topicId);
+            });
+        });
+
+        // --- "Run Code" button functionality ---
+        document.getElementById('run-btn').addEventListener('click', async () => {
+            const userCode = editor.getValue();
+            const outputArea = document.getElementById('output-area');
+            outputArea.textContent = "Running your code...\n"; // Show loading state
+            outputArea.classList.remove('error'); // Clear previous error state
+            
+            try {
+                const response = await fetch('/execute_python', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code: userCode }),
+                });
+
+                const data = await response.json();
+                outputArea.textContent = data.output; // Display output from backend
+                
+                if (data.output.startsWith("Error:") || data.output.includes("Traceback") || data.output.includes("Exception")) { 
+                    outputArea.classList.add('error');
+                } else {
+                    outputArea.classList.remove('error');
+                }
+
+            } catch (error) {
+                console.error('Frontend Error:', error);
+                outputArea.textContent = `Frontend Error: Could not connect to the server or an unexpected error occurred.\n${error}`;
+                outputArea.classList.add('error');
+            }
+        });
+
+        window.addEventListener('load', () => {
+            loadTopic(currentTopicId);
+        });
+    </script>
+</body>
+</html>

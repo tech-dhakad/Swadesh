@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swadesh Community Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Swadesh Theme Colors */
+            --bg-color: #0D0D2B; /* Dark Blue from your theme */
+            --card-bg: rgba(26, 26, 46, 0.6);
+            --border-color: rgba(0, 246, 255, 0.2);
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --accent-cyan: #00F6FF;
+            --accent-purple: #8A2BE2;
+            --me-bubble-bg: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            --other-bubble-bg: #2a2a4a;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--card-bg);
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            box-shadow: 0 0 40px rgba(0, 246, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.5rem;
+            background-color: rgba(0,0,0,0.3);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .home-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .home-btn:hover {
+            background: var(--accent-cyan);
+            color: #0D0D2B;
+            box-shadow: 0 0 15px var(--accent-cyan);
+        }
+        .chat-header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            text-shadow: 0 0 5px var(--accent-cyan);
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages::-webkit-scrollbar { width: 6px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: var(--accent-cyan); border-radius: 3px; }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            word-wrap: break-word;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .message-bubble.is-me {
+            background: var(--me-bubble-bg);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .message-bubble.is-other {
+            background-color: var(--other-bubble-bg);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .message-sender {
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+            color: var(--accent-cyan);
+        }
+        .message-bubble.is-me .message-sender { color: rgba(255, 255, 255, 0.9); }
+        .message-text { font-size: 1rem; line-height: 1.5; }
+        .message-time { font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.3rem; align-self: flex-end; }
+        .message-bubble.is-me .message-time { color: rgba(255, 255, 255, 0.7); }
+        .file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 5px;
+            text-decoration: none;
+            color: inherit;
+            font-weight: 500;
+            max-width: 100%;
+            border: 1px solid var(--border-color);
+        }
+        .file-link span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-link:hover { background-color: rgba(0, 0, 0, 0.4); }
+
+        .chat-input-container {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border-color);
+            background-color: rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+        #file-preview {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            display: none;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+        .chat-input-form { display: flex; gap: 0.75rem; }
+        #messageInput {
+            flex-grow: 1;
+            border: 1px solid var(--border-color);
+            background-color: #0D0D2B;
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 20px;
+            font-size: 1rem;
+        }
+        #messageInput:focus { outline: none; border-color: var(--accent-cyan); }
+        .icon-btn {
+            border: none;
+            background-color: var(--other-bubble-bg);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        #sendButton {
+            background-color: var(--accent-cyan);
+            color: #0D0D2B;
+        }
+        #sendButton:hover { background-color: #8A2BE2; color: white; }
+        #loading-indicator { text-align: center; padding: 2rem; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <a href="{{ url_for('home') }}" class="home-btn" title="Back to Home">Home</a>
+            <h1>Community Chat</h1>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div id="loading-indicator">Connecting to chat...</div>
+        </div>
+        <div class="chat-input-container">
+             <div id="file-preview"></div>
+             <form class="chat-input-form" id="chatForm">
+                <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+                <input type="file" id="fileInput" style="display: none;">
+                <button type="button" class="icon-btn" onclick="document.getElementById('fileInput').click()" title="Attach a file">📎</button>
+                <button type="submit" id="sendButton" title="Send">▶</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        const firebaseConfig = {{ config.FIREBASE_CONFIG_DICT | tojson | safe }};
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { 
+            getFirestore, collection, addDoc, serverTimestamp,
+            query, orderBy, onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        const currentUsername = "{{ username | safe }}";
+        let currentUserId = null;
+
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const fileInput = document.getElementById('fileInput');
+        const filePreview = document.getElementById('file-preview');
+        const chatMessages = document.getElementById('chatMessages');
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUserId = user.uid;
+                listenForMessages();
+            } else {
+                signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (file) {
+                filePreview.textContent = `Selected: ${file.name}`;
+                filePreview.style.display = 'block';
+            } else {
+                filePreview.style.display = 'none';
+            }
+        });
+        
+        function listenForMessages() {
+            const messagesCollection = collection(db, "swadesh_chat_room");
+            const q = query(messagesCollection, orderBy("timestamp"));
+            onSnapshot(q, (snapshot) => {
+                loadingIndicator.style.display = 'none';
+                if (snapshot.empty) {
+                    chatMessages.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No messages yet. Start the conversation!</p>';
+                } else {
+                    chatMessages.innerHTML = '';
+                    snapshot.forEach((doc) => { displayMessage(doc.data()); });
+                }
+                // Scroll to the latest message
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, (error) => {
+                console.error("Error listening for messages: ", error);
+                loadingIndicator.textContent = "Error loading chat. Please refresh.";
+            });
+        }
+
+        function displayMessage(data) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('message-bubble');
+            bubble.classList.add(data.senderId === currentUserId ? 'is-me' : 'is-other');
+            
+            const messageTime = data.timestamp ? data.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            let messageContent = data.text ? `<div class="message-text">${data.text}</div>` : '';
+            if (data.fileURL && data.fileName) {
+                messageContent += `<a href="${data.fileURL}" class="file-link" download="${data.fileName}">📄 <span>${data.fileName}</span></a>`;
+            }
+
+            bubble.innerHTML = `<div class="message-sender">${data.senderName || 'Anonymous'}</div>${messageContent}<div class="message-time">${messageTime}</div>`;
+            chatMessages.appendChild(bubble);
+        }
+
+        async function sendMessage() {
+            const messageText = messageInput.value.trim();
+            const file = fileInput.files[0];
+            if (!messageText && !file) return;
+            if (!currentUserId) {
+                alert("Cannot send message. User not authenticated.");
+                return;
+            }
+
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            sendButton.innerHTML = '...';
+
+            try {
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        await addDoc(collection(db, "swadesh_chat_room"), {
+                            text: messageText, senderName: currentUsername, senderId: currentUserId,
+                            timestamp: serverTimestamp(), fileURL: e.target.result, fileName: file.name
+                        });
+                        resetForm();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    await addDoc(collection(db, "swadesh_chat_room"), {
+                        text: messageText, senderName: currentUsername, senderId: currentUserId,
+                        timestamp: serverTimestamp()
+                    });
+                    resetForm();
+                }
+            } catch (error) {
+                console.error("Error sending message: ", error);
+                alert("Message could not be sent. Please try again.");
+                resetForm();
+            }
+        }
+        
+        function resetForm() {
+            messageInput.value = '';
+            fileInput.value = '';
+            filePreview.style.display = 'none';
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = false;
+            sendButton.innerHTML = '▶';
+        }
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            sendMessage();
+        });
+    </script>
+
+</body>
+</html>
+

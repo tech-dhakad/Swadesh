@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Motivation Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Lora:ital,wght@1,500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: #000000; /* Base Black Background */
+            color: #f0f0f0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ===== ENHANCED SMOKY ANIMATION BACKGROUND ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            background: radial-gradient(circle at 15% 25%, rgba(138, 43, 226, 0.25) 0%, transparent 40%), 
+                        radial-gradient(circle at 85% 75%, rgba(0, 255, 255, 0.2) 0%, transparent 40%), 
+                        radial-gradient(circle at 50% 50%, rgba(76, 201, 240, 0.15) 0%, transparent 50%);
+            animation: animateSmoke 30s ease-in-out infinite alternate;
+            filter: blur(80px);
+        }
+
+        /* ===== EXTRA FLOWING SMOKE LAYER ===== */
+        .smoke {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            pointer-events: none;
+            z-index: -2;
+            background: url('https://i.ibb.co/0Yt4bD3/smoke.png') repeat;
+            background-size: 800px 800px;
+            animation: moveSmoke 60s linear infinite;
+            opacity: 0.12; /* Light subtle effect */
+            filter: blur(60px);
+        }
+
+        @keyframes moveSmoke {
+            0%   { transform: translate(0,0) scale(1); }
+            50%  { transform: translate(-200px, -100px) scale(1.2); }
+            100% { transform: translate(0,0) scale(1); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 60px;
+            background: linear-gradient(90deg, #00BFFF, #4cc9f0, #00FFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInDown 1s ease-out;
+        }
+        
+        .quotes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 35px;
+        }
+
+        .quote-card {
+            background: rgba(20, 20, 35, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            position: relative;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .quote-card:nth-child(2) { animation-delay: 0.1s; }
+        .quote-card:nth-child(3) { animation-delay: 0.2s; }
+        .quote-card:nth-child(4) { animation-delay: 0.3s; }
+        .quote-card:nth-child(5) { animation-delay: 0.4s; }
+        .quote-card:nth-child(6) { animation-delay: 0.5s; }
+
+        .quote-card:hover {
+            transform: translateY(-10px);
+            border-image: linear-gradient(45deg, #00BFFF, #4cc9f0, #00FFFF) 1;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.4);
+        }
+
+        .quote-symbol {
+            font-size: 4rem;
+            font-family: Georgia, serif;
+            color: #ffffff;
+            line-height: 1;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        
+        .quote-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin: 0;
+            color: #e0e0e0;
+            text-align: left;
+        }
+
+        .quote-author {
+            font-family: 'Lora', serif;
+            font-style: italic;
+            font-size: 1rem;
+            text-align: right;
+            margin-top: 20px;
+            color: #00FFFF;
+        }
+        
+        /* ===== Animations ===== */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        @keyframes animateSmoke {
+            0% { transform: translate(0, 0) scale(1.1); opacity: 0.7; }
+            33% { transform: translate(60px, -40px) scale(1.3) rotate(5deg); opacity: 0.8; }
+            66% { transform: translate(-30px, 50px) scale(1.2) rotate(-5deg); opacity: 0.75; }
+            100% { transform: translate(0, 0) scale(1.1); opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('mental_health_chatbot_page') }}" class="back-link">← Back to Chat</a>
+    <!-- Flowing Smoke Layer -->
+    <div class="smoke"></div>
+
+    <div class="container">
+        <h1>Fuel Your Ambition</h1>
+        <div class="quotes-grid" id="quotes-grid-container"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const quotes = [
+                { text: "Dream, dream, dream. Dreams transform into thoughts and thoughts result in action.", author: "Dr. A.P.J. Abdul Kalam" },
+                { text: "The important thing is not to stop questioning. Curiosity has its own reason for existing.", author: "Albert Einstein" },
+                { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
+                { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin" },
+                { text: "Excellence is not an act, but a habit. We are what we repeatedly do.", author: "Aristotle" },
+                { text: "Arise, awake, and stop not till the goal is reached.", author: "Swami Vivekananda" }
+            ];
+
+            const gridContainer = document.getElementById('quotes-grid-container');
+
+            quotes.forEach(quote => {
+                const card = document.createElement('div');
+                card.classList.add('quote-card');
+                card.innerHTML = `<div class="quote-symbol">“</div>
+                                  <p class="quote-text">${quote.text}</p>
+                                  <p class="quote-author">- ${quote.author}</p>`;
+                gridContainer.appendChild(card);
+            });
+        });
+    </script>
+
+</body>
+</html>

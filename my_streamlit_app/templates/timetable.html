@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI in Education – Smart Shiksha Schedule</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <style>
+        /* ===== Base & Theme ===== */
+        :root {
+            --bg-color: #000000;
+            --surface-color: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --text-color: #fff;
+            --text-muted: #a0aec0;
+            --pink: #e31dcc;
+            --cyan: #4cc9f0;
+            --purple: #7b4be0;
+            --red: #f56565;
+            --green: #48bb78;
+        }
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 25% 25%, #0d1117, #000000);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* ===== Layout ===== */
+        .wrapper {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .main-content { grid-column: 1 / 2; }
+        .sidebar { grid-column: 2 / 3; }
+        
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+        }
+        h1 { font-family: 'Poppins', sans-serif; font-size: 1.9rem; font-weight: 600; }
+
+        /* ===== Buttons ===== */
+        .actions .btn {
+            background: linear-gradient(90deg, var(--pink), var(--cyan));
+            border: none; color: #fff; padding: 8px 16px; margin-left: 8px;
+            border-radius: 6px; cursor: pointer; font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+        }
+        .actions .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(227, 29, 204, 0.3); }
+
+        /* ===== Table ===== */
+        .schedule-container { overflow-x: auto; }
+        table.schedule {
+            width: 100%; min-width: 800px; border-collapse: collapse; text-align: center;
+            background: var(--surface-color); backdrop-filter: blur(28px);
+            border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);
+        }
+        .schedule thead th { padding: 14px 8px; background: rgba(255,255,255,0.06); font-weight: 600; }
+        .schedule td, .schedule th { border: 1px dashed var(--border-color); height: 120px; position: relative; padding: 0; }
+        .schedule td:first-child { font-weight: 600; }
+        .schedule tbody td { vertical-align: top; }
+
+        /* ===== Schedule Cards ===== */
+        .card {
+            padding: 12px; border-radius: 8px; height: 100%; box-sizing: border-box;
+            display: flex; flex-direction: column; justify-content: space-between;
+            text-align: left; position: relative;
+        }
+        .card h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .card p { margin: 4px 0; font-size: 0.85rem; opacity: 0.85; word-break: break-word; }
+        .card-actions {
+            position: absolute; top: 8px; right: 8px; display: flex; gap: 6px;
+            background: rgba(0,0,0,0.3); padding: 4px; border-radius: 5px;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .card:hover .card-actions { opacity: 1; }
+        .card-actions span { cursor: pointer; font-size: 14px; }
+        .theme-pink { background: rgba(227,29,204,0.1); border-left: 3px solid var(--pink); box-shadow: 0 0 15px rgba(227,29,204,0.25); }
+        .theme-cyan { background: rgba(76,201,240,0.1); border-left: 3px solid var(--cyan); box-shadow: 0 0 15px rgba(76,201,240,0.25); }
+        .theme-purple { background: rgba(123,75,224,0.1); border-left: 3px solid var(--purple); box-shadow: 0 0 15px rgba(123,75,224,0.25); }
+        
+        /* ===== Sidebar Cards ===== */
+        .sidebar-card {
+             background: var(--surface-color); border: 1px solid var(--border-color);
+             border-radius: 12px; padding: 20px; margin-bottom: 20px;
+        }
+        .sidebar-card h2 { margin-top: 0; font-family: 'Poppins', sans-serif; font-size: 1.2rem; }
+        .sidebar-card ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-card li {
+            display: flex; align-items: center; padding: 10px 5px;
+            border-bottom: 1px solid var(--border-color); font-size: 0.9rem;
+        }
+        .sidebar-card li:last-child { border-bottom: none; }
+        .sidebar-card li.completed { text-decoration: line-through; color: var(--text-muted); }
+        .sidebar-card input[type="checkbox"] { margin-right: 12px; accent-color: var(--cyan); width: 16px; height: 16px; cursor: pointer; }
+        #pending-list li { background: rgba(245, 101, 101, 0.1); }
+        #pending-list .task-details span:first-child { color: var(--red); font-weight: 600; }
+        .task-details { display: flex; flex-direction: column; }
+        .task-time { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* ===== Modal (Popup Form) ===== */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+             background: #101932; padding: 25px; border-radius: 12px;
+             width: 90%; max-width: 450px; border: 1px solid var(--border-color);
+        }
+        .modal h2 { margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);
+            background: var(--surface-color); color: var(--text-color); box-sizing: border-box;
+        }
+        .time-inputs { display: flex; gap: 10px; }
+        .color-picker { display: flex; gap: 10px; }
+        .color-picker input[type="radio"] { display: none; }
+        .color-picker label { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-picker input[type="radio"]:checked + label { border-color: #fff; }
+        #color-cyan + label { background-color: var(--cyan); } #color-pink + label { background-color: var(--pink); } #color-purple + label { background-color: var(--purple); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+        @media (max-width: 900px) {
+            .wrapper { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <main class="main-content">
+            <header>
+                <h1>Weekly Schedule</h1>
+                <div class="actions">
+                    <a href="{{ url_for('home') }}" class="btn">Back to Home</a> 
+                    <button class="btn" id="add-slot-btn">+ Add Slot</button>
+                    <button class="btn" id="load-sample-btn">Load Sample</button>
+                    <button class="btn" id="clear-all-btn">Clear All</button>
+                    <button class="btn" id="download-btn">Download</button>
+                </div>
+            </header>
+            <div class="schedule-container">
+                <table class="schedule">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Sunday</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedule-body"></tbody>
+                </table>
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="sidebar-card">
+                <h2>✅ Today's To-Do</h2>
+                <ul id="todo-list"></ul>
+            </div>
+            <div class="sidebar-card">
+                <h2 style="color: var(--red);">🔥 Pending Tasks</h2>
+                <ul id="pending-list"></ul>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modal for adding/editing slots -->
+    <div class="modal" id="slot-modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Add New Slot</h2>
+            <form id="slot-form">
+                <input type="hidden" id="edit-mode-time">
+                <input type="hidden" id="edit-mode-day">
+                <div class="time-inputs">
+                    <div class="form-group" style="width: 50%">
+                        <label for="start-time">Start Time</label>
+                        <input type="time" id="start-time" required>
+                    </div>
+                    <div class="form-group" style="width: 50%">
+                        <label for="end-time">End Time</label>
+                        <input type="time" id="end-time" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="day-select">Day</label>
+                    <select id="day-select" required>
+                        <option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option>
+                        <option value="3">Thursday</option><option value="4">Friday</option><option value="5">Saturday</option>
+                        <option value="6">Sunday</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                  <label for="title-input">Subject / Title</label>
+                  <input type="text" id="title-input" required>
+                </div>
+                <div class="form-group">
+                  <label for="desc-input">Description (Optional)</label>
+                  <textarea id="desc-input" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Color Theme</label>
+                  <div class="color-picker">
+                      <input type="radio" id="color-cyan" name="color" value="theme-cyan" checked><label for="color-cyan"></label>
+                      <input type="radio" id="color-pink" name="color" value="theme-pink"><label for="color-pink"></label>
+                      <input type="radio" id="color-purple" name="color" value="theme-purple"><label for="color-purple"></label>
+                  </div>
+                </div>
+                <div class="modal-actions">
+                  <button type="button" class="btn" id="cancel-btn">Cancel</button>
+                  <button type="submit" class="btn">Save Slot</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  
+    // --- DOM ELEMENTS ---
+    const scheduleBody = document.getElementById('schedule-body');
+    const modal = document.getElementById('slot-modal');
+    const form = document.getElementById('slot-form');
+    const todoList = document.getElementById('todo-list');
+    const pendingList = document.getElementById('pending-list');
+    
+    // --- BUTTONS ---
+    const addSlotBtn = document.getElementById('add-slot-btn');
+    const loadSampleBtn = document.getElementById('load-sample-btn');
+    const clearAllBtn = document.getElementById('clear-all-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+
+    // --- APP STATE ---
+    let scheduleData = {};
+    const sampleData = { 
+        "09:00-10:00": [
+            { title: "Mathematics", description: "Algebra", color: "theme-cyan", completed: false },
+            { title: "Physics", description: "Newton's Laws", color: "theme-pink", completed: true },
+            null, { title: "Physics", description: "Lab", color: "theme-pink", completed: false }, null,
+            { title: "Biology", description: "Cell Biology", color: "theme-cyan", completed: false }, null
+        ],
+        "10:00-11:00": [
+            { title: "English", description: "Literature", color: "theme-cyan", completed: false }, null,
+            { title: "Chemistry", description: "Organic", color: "theme-pink", completed: false }, null, null, null, null
+        ],
+    };
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    // --- DATA MANAGEMENT ---
+    const saveData = () => {
+        localStorage.setItem('swadeshSchedule', JSON.stringify(scheduleData));
+    };
+
+    const loadData = () => {
+        const savedData = localStorage.getItem('swadeshSchedule');
+        scheduleData = savedData ? JSON.parse(savedData) : {};
+    };
+
+    // --- RENDERING (MAIN TABLE) ---
+    const renderTable = () => {
+        scheduleBody.innerHTML = '';
+        const sortedTimes = Object.keys(scheduleData).sort();
+
+        for (const time of sortedTimes) {
+            const row = document.createElement('tr');
+            let cellsHTML = `<td>${time.replace('-', ' - ')}</td>`;
+            const daySlots = scheduleData[time];
+
+            daySlots.forEach((slotData, dayIndex) => {
+                if (slotData) {
+                    cellsHTML += `
+                        <td>
+                            <div class="card ${slotData.color}">
+                                <h3>${slotData.title}</h3>
+                                <p>${slotData.description}</p>
+                                <div class="card-actions">
+                                    <span class="edit-btn" data-time="${time}" data-day="${dayIndex}">✏️</span>
+                                    <span class="delete-btn" data-time="${time}" data-day="${dayIndex}">🗑️</span>
+                                </div>
+                            </div>
+                        </td>`;
+                } else {
+                    cellsHTML += '<td></td>';
+                }
+            });
+            row.innerHTML = cellsHTML;
+            scheduleBody.appendChild(row);
+        }
+    };
+    
+    // --- RENDER TODO AND PENDING LISTS (CORRECTED LOGIC) ---
+    const renderTaskLists = () => {
+        todoList.innerHTML = '';
+        pendingList.innerHTML = '';
+        const now = new Date();
+        const todayIndex = (now.getDay() + 6) % 7; // Monday = 0, Sunday = 6
+
+        const sortedTimes = Object.keys(scheduleData).sort();
+
+        sortedTimes.forEach(time => {
+            scheduleData[time].forEach((slot, dayIndex) => {
+                if (!slot) return;
+
+                const isPending = dayIndex < todayIndex && !slot.completed;
+                const isTodo = dayIndex === todayIndex;
+
+                if (!isTodo && !isPending) return;
+
+                const listElement = document.createElement('li');
+                if (slot.completed) listElement.classList.add('completed');
+                
+                listElement.innerHTML = `
+                    <input type="checkbox" data-time="${time}" data-day="${dayIndex}" ${slot.completed ? 'checked' : ''}>
+                    <div class="task-details">
+                        <span>${slot.title}</span>
+                        <span class="task-time">${days[dayIndex]} @ ${time.split('-')[0]}</span>
+                    </div>
+                `;
+
+                if (isPending) {
+                    pendingList.appendChild(listElement);
+                } else if (isTodo) {
+                    todoList.appendChild(listElement);
+                }
+            });
+        });
+        
+        if (todoList.innerHTML === '') todoList.innerHTML = '<li>No tasks scheduled for today.</li>';
+        if (pendingList.innerHTML === '') pendingList.innerHTML = '<li>No pending tasks. Great job!</li>';
+    };
+
+    // Full render function
+    const renderAll = () => {
+        renderTable();
+        renderTaskLists();
+    };
+
+    // --- MODAL LOGIC ---
+    const openModal = (isEditing = false, data = {}) => {
+        form.reset();
+        document.getElementById('edit-mode-time').value = isEditing ? data.time : '';
+        document.getElementById('edit-mode-day').value = isEditing ? data.dayIndex : '';
+        if (isEditing) {
+            document.getElementById('modal-title').textContent = 'Edit Slot';
+            const [startTime, endTime] = data.time.split('-');
+            document.getElementById('start-time').value = startTime;
+            document.getElementById('end-time').value = endTime;
+            document.getElementById('day-select').value = data.dayIndex;
+            document.getElementById('title-input').value = data.slot.title;
+            document.getElementById('desc-input').value = data.slot.description;
+            document.querySelector(`input[name="color"][value="${data.slot.color}"]`).checked = true;
+        } else {
+            document.getElementById('modal-title').textContent = 'Add New Slot';
+        }
+        modal.style.display = 'flex';
+    };
+    const closeModal = () => {
+        modal.style.display = 'none';
+    };
+
+    // --- EVENT HANDLERS ---
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        const startTime = document.getElementById('start-time').value;
+        const endTime = document.getElementById('end-time').value;
+        const timeKey = `${startTime}-${endTime}`;
+        const dayIndex = parseInt(document.getElementById('day-select').value);
+        
+        const newSlotData = {
+            title: document.getElementById('title-input').value,
+            description: document.getElementById('desc-input').value,
+            color: document.querySelector('input[name="color"]:checked').value,
+            completed: false 
+        };
+        
+        const editTime = document.getElementById('edit-mode-time').value;
+        const editDay = document.getElementById('edit-mode-day').value;
+        if (editTime && editDay !== '') {
+            if (scheduleData[editTime] && scheduleData[editTime][parseInt(editDay)]) {
+                 newSlotData.completed = scheduleData[editTime][parseInt(editDay)].completed;
+            }
+            scheduleData[editTime][parseInt(editDay)] = null;
+            if (scheduleData[editTime].every(slot => slot === null)) {
+                delete scheduleData[editTime];
+            }
+        }
+        
+        if (!scheduleData[timeKey]) {
+            scheduleData[timeKey] = new Array(7).fill(null);
+        }
+        scheduleData[timeKey][dayIndex] = newSlotData;
+        
+        saveData();
+        renderAll();
+        closeModal();
+    };
+
+    const handleScheduleClick = (e) => {
+        const target = e.target;
+        if (target.classList.contains('edit-btn')) {
+            const time = target.dataset.time;
+            const dayIndex = parseInt(target.dataset.day);
+            const slot = scheduleData[time][dayIndex];
+            openModal(true, { time, dayIndex, slot });
+        } else if (target.classList.contains('delete-btn')) {
+            if (confirm('Are you sure you want to delete this slot?')) {
+                const time = target.dataset.time;
+                const dayIndex = parseInt(target.dataset.day);
+                scheduleData[time][dayIndex] = null;
+                if (scheduleData[time].every(slot => slot === null)) {
+                    delete scheduleData[time];
+                }
+                saveData();
+                renderAll();
+            }
+        }
+    };
+    
+    const handleCheckboxClick = (e) => {
+        if (e.target.type === 'checkbox') {
+            const { time, day } = e.target.dataset;
+            const dayIndex = parseInt(day);
+            const isChecked = e.target.checked;
+
+            if(scheduleData[time] && scheduleData[time][dayIndex]){
+                scheduleData[time][dayIndex].completed = isChecked;
+                saveData();
+                renderTaskLists();
+            }
+        }
+    };
+
+    // --- EVENT LISTENERS ---
+    addSlotBtn.addEventListener('click', () => openModal(false));
+    loadSampleBtn.addEventListener('click', () => {
+        if (confirm('This will replace your current schedule. Are you sure?')) {
+            scheduleData = JSON.parse(JSON.stringify(sampleData));
+            saveData();
+            renderAll();
+        }
+    });
+    clearAllBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear the entire schedule?')) {
+            scheduleData = {};
+            saveData();
+            renderAll();
+        }
+    });
+    downloadBtn.addEventListener('click', () => window.print());
+    form.addEventListener('submit', handleFormSubmit);
+    cancelBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    scheduleBody.addEventListener('click', handleScheduleClick);
+    
+    todoList.addEventListener('click', handleCheckboxClick);
+    pendingList.addEventListener('click', handleCheckboxClick);
+
+    // --- INITIALIZATION ---
+    loadData();
+    renderAll();
+
+    
+});
+</script>
+<audio id="siren-sound" src="siren.mp3" preload="auto"></audio>
+</body>
+</html>

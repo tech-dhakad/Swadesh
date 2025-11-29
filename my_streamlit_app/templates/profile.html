@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile - Swadesh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #000000; 
+            overflow: hidden; /* Canvas ke liye scrollbars hatata hai */
+        }
+        
+        /* NAYA CANVAS ANIMATION KE LIYE STYLE */
+        #particle-canvas {
+            position: fixed; /* Poore screen par fix karne ke liye */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Baaki content ke peeche rakhta hai */
+        }
+
+        /* Glassmorphism container (koi change nahi) */
+        .glass-container {
+            background: rgba(17, 24, 39, 0.7); /* Thoda aur transparent */
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Naam ke liye gradient text style (koi change nahi) */
+        .gradient-text {
+            background: linear-gradient(90deg, #a855f7, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Profile Initial Circle ke liye extra styling (koi change nahi) */
+        .profile-initial-circle {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .profile-initial-circle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+        }
+
+        /* Details ke icons ke liye style (koi change nahi) */
+        .detail-item svg {
+            width: 24px;
+            height: 24px;
+            color: #a855f7;
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-200">
+    
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl mx-auto">
+            
+            <div class="glass-container rounded-2xl p-8 md:p-12 shadow-2xl">
+                <div class="flex flex-col md:flex-row items-center gap-8 mb-8 pb-8 border-b border-gray-700">
+                    <div class="profile-initial-circle w-32 h-32 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-5xl font-bold text-white shadow-lg flex-shrink-0">
+                        {{ username[0]|upper }}
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h1 class="text-4xl font-bold text-white">
+                           Welcome, <span class="gradient-text">{{ username }}</span>
+                        </h1>
+                        <p class="text-lg text-gray-400 mt-2">{{ user.email }}</p>
+                    </div>
+                </div>
+
+                <div class="pt-8 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        <div class="detail-item flex items-center gap-4 p-4 bg-gray-900/50 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-5.5V5.5a2.25 2.25 0 012.25-2.25h1.5M12 21h-1.5a2.25 2.25 0 01-2.25-2.25V5.5A2.25 2.25 0 0110.5 3.25h1.5M12 21h-3.375a2.25 2.25 0 01-2.25-2.25V5.5A2.25 2.25 0 018.625 3.25h1.5M12 21h3.375a2.25 2.25 0 002.25-2.25V5.5A2.25 2.25 0 0015.375 3.25h-1.5" />
+                            </svg>
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">School / College</h3>
+                                <p class="text-xl text-white mt-1">{{ user.school }}</p>
+                            </div>
+                        </div>
+
+                         <div class="detail-item flex items-center gap-4 p-4 bg-gray-900/50 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                               <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0l-2.072-1.036A48.622 48.622 0 0112 3.493a48.622 48.622 0 0110.072 5.617l-2.072 1.036m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5z" />
+                            </svg>
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Class / Branch</h3>
+                                <p class="text-xl text-white mt-1">{{ user.branch }}</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <a href="#" class="w-full sm:w-auto text-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300">
+                       Edit Profile
+                    </a>
+                    <a href="{{ url_for('home') }}" class="w-full sm:w-auto text-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">
+                        Back to Home
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="w-full sm:w-auto text-center bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- NAYA PARTICLE ANIMATION SCRIPT ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Canvas ko screen size ke barabar set karna
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray;
+
+        // Mouse position object
+        let mouse = {
+            x: null,
+            y: null,
+            radius: (canvas.height / 120) * (canvas.width / 120)
+        }
+
+        window.addEventListener('mousemove', function(event) {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        // Particle class
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+            // Particle draw karne ka method
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            // Particle ki position update karna
+            update() {
+                if (this.x > canvas.width || this.x < 0) {
+                    this.directionX = -this.directionX;
+                }
+                if (this.y > canvas.height || this.y < 0) {
+                    this.directionY = -this.directionY;
+                }
+
+                // Mouse se interaction
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius + this.size){
+                    if (mouse.x < this.x && this.x < canvas.width - this.size * 10) {
+                        this.x += 5;
+                    }
+                    if (mouse.x > this.x && this.x > this.size * 10) {
+                        this.x -= 5;
+                    }
+                    if (mouse.y < this.y && this.y < canvas.height - this.size * 10) {
+                        this.y += 5;
+                    }
+                    if (mouse.y > this.y && this.y > this.size * 10) {
+                        this.y -= 5;
+                    }
+                }
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        // Particles ko create karna
+        function init() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 2) - 1;
+                let directionY = (Math.random() * 2) - 1;
+                // Theme ke hisab se colors
+                let color = '#a855f7'; // Purple
+
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        // Particles ke beech line draw karna
+        function connect() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                                 + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width / 7) * (canvas.height / 7)) {
+                        opacityValue = 1 - (distance / 20000);
+                        // Theme ke hisab se line color
+                        ctx.strokeStyle = `rgba(59, 130, 246, ${opacityValue})`; // Blue
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connect();
+        }
+
+        // Window resize hone par canvas ko adjust karna
+        window.addEventListener('resize', function() {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            mouse.radius = (canvas.height / 120) * (canvas.width / 120);
+            init();
+        });
+
+        // Mouse out hone par mouse position reset karna
+        window.addEventListener('mouseout', function() {
+            mouse.x = undefined;
+            mouse.y = undefined;
+        });
+
+        init();
+        animate();
+    </script>
+</body>
+</html>

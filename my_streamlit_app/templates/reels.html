@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motivational Reels - Swadesh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #000;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        /* NAYA: Starfield Animation ke liye Canvas */
+        #starfield-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Sabse peeche */
+        }
+
+        .phone-container {
+            position: relative;
+            z-index: 10;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .phone-frame {
+            position: absolute;
+            height: 90vh;
+            max-height: 800px;
+            width: auto;
+            z-index: 30;
+            pointer-events: none;
+        }
+        
+        /* THEEK KIYA: Reels ka viewport ab scrollable hai */
+        .reels-viewport {
+            height: 87.5vh;
+            max-height: 780px;
+            width: 41vh;
+            max-width: 360px;
+            overflow-y: scroll; /* Hidden se scroll kiya */
+            scroll-snap-type: y mandatory;
+            border-radius: 38px;
+            position: relative;
+            z-index: 20;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Chrome, Safari, Opera ke liye scrollbar chupane ka style */
+        .reels-viewport::-webkit-scrollbar {
+            display: none;
+        }
+
+        .reel {
+            width: 100%;
+            height: 100%;
+            scroll-snap-align: start;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+        .back-link:hover {
+            background: rgba(0, 0, 0, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="starfield-canvas"></canvas>
+    <a href="{{ url_for('mental_health_chatbot_page') }}" class="back-link">← Back to Chat</a>
+    
+    <div class="phone-container">
+        <img src="{{ url_for('static', filename='assets/images/photo-frame.png') }}" alt="Phone Frame" class="phone-frame">
+        <div class="reels-viewport" id="reels-container">
+            <div class="reel">
+                <video src="{{ url_for('static', filename='assets/videos/video1.mp4') }}" loop playsinline></video>
+            </div>
+            <div class="reel">
+                <video src="{{ url_for('static', filename='assets/videos/video2.mp4') }}" loop playsinline></video>
+            </div>
+            <div class="reel">
+                <video src="{{ url_for('static', filename='assets/videos/video3.mp4') }}" loop playsinline></video>
+            </div>
+            <div class="reel">
+                <video src="{{ url_for('static', filename='assets/videos/video4.mp4') }}" loop playsinline></video>
+            </div>
+            <div class="reel">
+                <video src="{{ url_for('static', filename='assets/videos/video5.mp4') }}" loop playsinline></video>
+            </div>
+            <div class="reel">
+                <video src="{{ url_for('static', filename='assets/videos/video6.mp4') }}" loop playsinline></video>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const reelsContainer = document.getElementById('reels-container');
+            const videos = document.querySelectorAll('.reel video');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.play().catch(e => {});
+                    } else {
+                        entry.target.pause();
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            videos.forEach(video => {
+                observer.observe(video);
+                video.addEventListener('click', () => {
+                    video.paused ? video.play() : video.pause();
+                });
+            });
+            
+            document.addEventListener('keydown', (event) => {
+                const currentScroll = reelsContainer.scrollTop;
+                const reelHeight = reelsContainer.clientHeight;
+                if (event.key === 'ArrowDown') {
+                    reelsContainer.scrollTo({ top: currentScroll + reelHeight, behavior: 'smooth' });
+                } else if (event.key === 'ArrowUp') {
+                     reelsContainer.scrollTo({ top: currentScroll - reelHeight, behavior: 'smooth' });
+                }
+            });
+        });
+
+        // NAYA: Background Starfield Animation
+        const canvas = document.getElementById('starfield-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let stars = [];
+        let numStars = 200;
+        let maxDist = 150;
+
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 1.5 + 1,
+                vx: Math.random() * 0.5 - 0.25,
+                vy: Math.random() * 0.5 - 0.25
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff';
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.beginPath();
+            for (let i = 0; i < stars.length; i++) {
+                for (let j = i; j < stars.length; j++) {
+                    let dist = Math.sqrt(Math.pow(stars[i].x - stars[j].x, 2) + Math.pow(stars[i].y - stars[j].y, 2));
+                    if (dist < maxDist) {
+                        ctx.moveTo(stars[i].x, stars[i].y);
+                        ctx.lineTo(stars[j].x, stars[j].y);
+                    }
+                }
+            }
+            ctx.strokeStyle = 'rgba(173, 216, 230, 0.1)'; // Light blue lines
+            ctx.stroke();
+        }
+
+        function update() {
+            stars.forEach(star => {
+                star.x += star.vx;
+                star.y += star.vy;
+
+                if (star.x < 0 || star.x > canvas.width) star.vx = -star.vx;
+                if (star.y < 0 || star.y > canvas.height) star.vy = -star.vy;
+            });
+        }
+
+        function animate() {
+            draw();
+            update();
+            requestAnimationFrame(animate);
+        }
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            stars = [];
+            for (let i = 0; i < numStars; i++) {
+                 stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5 + 1,
+                    vx: Math.random() * 0.5 - 0.25,
+                    vy: Math.random() * 0.5 - 0.25
+                });
+            }
+        });
+
+        animate();
+    </script>
+</body>
+</html>
+
